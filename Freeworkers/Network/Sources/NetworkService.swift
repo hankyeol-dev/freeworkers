@@ -17,6 +17,7 @@ public struct NetworkService {
       guard let res = res as? HTTPURLResponse,
             res.statusCode != 400 else {
          let errorCode = try decoder.decode(ErrorOutputType.self, from: data).errorCode
+         print("errorCode: \(errorCode)")
          throw handleErrorOutput(errorCode)
       }
       
@@ -35,6 +36,7 @@ public struct NetworkService {
       }
    }
 }
+
 
 public struct ErrorOutputType: Decodable {
    let errorCode: String
