@@ -3,9 +3,16 @@
 import Foundation
 
 final class DIContainer: ObservableObject {
-   var services: ServiceType
+   var services : ServiceType
+   var navigator : NavigatableType
    
-   init(services: ServiceType) {
+   init(
+      services: ServiceType,
+      navigator : NavigatableType = NavigationProvider()
+   ) {
       self.services = services
+      self.navigator = navigator
+      
+      navigator.setObservablePublisher(objectWillChange)
    }
 }

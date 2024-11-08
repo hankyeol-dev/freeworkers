@@ -1,5 +1,8 @@
 import SwiftUI
+import SwiftData
+
 import FreeworkersNetworkKit
+import FreeworkersDBKit
 
 @main
 struct FreeworkersApp: App {
@@ -7,8 +10,9 @@ struct FreeworkersApp: App {
    
    var body: some Scene {
       WindowGroup {
-         AuthenicationEntryView(viewModel: .init(diContainer: diContainer))
+         AuthEntryView(viewModel: .init(diContainer: diContainer))
             .environmentObject(diContainer)
       }
+      .modelContainer(DatabaseService.shared.getContainer()) // DB
    }
 }

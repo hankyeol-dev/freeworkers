@@ -37,6 +37,9 @@ fileprivate struct UserDefaultSetting {
    
    @UserDefaultsWrapper(key: .isLogined, defaultValue: false)
    var isLogined: Bool
+   
+   @UserDefaultsWrapper(key: .isLogined, defaultValue: "")
+   var latestEnteredChannelId: String
 }
 
 protocol UserDefaultsRepositoryType : Actor {
@@ -60,6 +63,8 @@ final actor UserDefaultsRepository : UserDefaultsRepositoryType {
          userSetting.accessToken = value
       case .refreshToken:
          userSetting.refreshToken = value
+      case .latestEnteredChannelId:
+         userSetting.latestEnteredChannelId = value
       default:
          break;
       }
@@ -73,6 +78,8 @@ final actor UserDefaultsRepository : UserDefaultsRepositoryType {
          return userSetting.accessToken
       case .refreshToken:
          return userSetting.refreshToken
+      case .latestEnteredChannelId:
+         return userSetting.latestEnteredChannelId
       default:
          return ""
       }

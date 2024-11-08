@@ -6,11 +6,7 @@ import Combine
 import FreeworkersNetworkKit
 
 protocol CoreRepositoryType {
-   func request<OutputType : Decodable>(
-      router : EndpointProtocol,
-      of : OutputType.Type
-   ) async -> Result<OutputType, NetworkErrors>
-   
+   func request<OutputType : Decodable>(router : EndpointProtocol, of : OutputType.Type) async -> Result<OutputType, NetworkErrors>
    func refreshToken() async -> Bool
 }
 
@@ -24,7 +20,8 @@ extension CoreRepositoryType {
          return .success(output)
       } catch NetworkErrors.error(message: .E05) {
          // MARK: accessToken 만료
-         if await refreshToken() {
+         let isRefresh = await refreshToken()
+         if isRefresh {
             return await request(router: router, of: of)
          } else {
             await logout()
