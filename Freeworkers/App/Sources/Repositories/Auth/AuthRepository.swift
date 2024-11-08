@@ -20,11 +20,11 @@ struct AuthRepository : AuthRepositoryType {
          await saveUserInformation(data)
          return .success(true)
       } catch NetworkErrors.error(message: .E11) {
-         return .failure(.error(message: AppConstants.ERROR_JOIN_WRONGINPUT))
+         return .failure(.error(message: errorText.ERROR_JOIN_WRONGINPUT))
       } catch NetworkErrors.error(message: .E12) {
-         return .failure(.error(message: AppConstants.ERROR_JOIN_OVERLAP))
+         return .failure(.error(message: errorText.ERROR_JOIN_OVERLAP))
       } catch {
-         return .failure(.error(message: AppConstants.ERROR_UNKWON))
+         return .failure(.error(message: errorText.ERROR_UNKWON))
       }
    }
    
@@ -36,9 +36,9 @@ struct AuthRepository : AuthRepositoryType {
          await UserDefaultsRepository.shared.setLoginState(true)
          return .success(true)
       } catch NetworkErrors.error(message: .E03) {
-         return .failure(.error(message: AppConstants.ERROR_LOGIN))
+         return .failure(.error(message: errorText.ERROR_LOGIN))
       } catch {
-         return .failure(.error(message: AppConstants.ERROR_UNKWON))
+         return .failure(.error(message: errorText.ERROR_UNKWON))
       }
    }
    
@@ -51,11 +51,11 @@ struct AuthRepository : AuthRepositoryType {
          await UserDefaultsRepository.shared.setLoginState(true)
          return .success(true)
       } catch NetworkErrors.error(message: .E03) {
-         return .failure(.error(message: AppConstants.ERROR_LOGIN_WITH_APPLE))
+         return .failure(.error(message: errorText.ERROR_LOGIN_WITH_APPLE))
       } catch NetworkErrors.error(message: .E12) {
-         return .failure(.error(message: AppConstants.ERROR_JOIN_OVERLAP))
+         return .failure(.error(message: errorText.ERROR_JOIN_OVERLAP))
       } catch {
-         return .failure(.error(message: AppConstants.ERROR_UNKWON))
+         return .failure(.error(message: errorText.ERROR_UNKWON))
       }
    }
    
@@ -72,11 +72,11 @@ struct AuthRepository : AuthRepositoryType {
          print(data)
          return .success(true)
       } catch NetworkErrors.error(message: .E11) {
-         return .failure(.error(message: AppConstants.ERROR_JOIN_WRONGINPUT))
+         return .failure(.error(message: errorText.ERROR_JOIN_WRONGINPUT))
       } catch NetworkErrors.error(message: .E12) {
-         return .failure(.error(message: AppConstants.ERROR_JOIN_OVERLAP))
+         return .failure(.error(message: errorText.ERROR_JOIN_OVERLAP))
       } catch {
-         return .failure(.error(message: AppConstants.ERROR_UNKWON))
+         return .failure(.error(message: errorText.ERROR_UNKWON))
       }
    }
 }
