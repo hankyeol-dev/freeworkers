@@ -71,9 +71,9 @@ struct LoginView : View {
                
                VStack(spacing: 10.0) {
                   Text("이메일")
-                     .font(.fwT2)
-                     .foregroundStyle(viewModel.isValidEmail ? Color.primary : .error)
-                     .frame(maxWidth: .infinity, alignment: .leading)
+                     .fwTextFieldLabelStyle(foregroundBinder: $viewModel.isValidEmail,
+                                            primary: Color.primary,
+                                            secondary: .error)
                      .onChange(of: viewModel.emailFieldText) { _, newValue in
                         viewModel.send(action: .validEmail(email: newValue))
                      }
@@ -242,8 +242,8 @@ extension LoginView.ViewModel {
             .store(in: &store)
       }
       
-      if case let .failure(error) = result {
-         loginToast = .error(message: AppConstants.ERROR_LOGIN_WITH_APPLE, duration: 1.5)
+      if case .failure = result {
+         loginToast = .error(message: errorText.ERROR_LOGIN_WITH_APPLE, duration: 1.5)
       }
    }
 }
