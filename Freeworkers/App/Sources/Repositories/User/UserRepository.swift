@@ -17,12 +17,12 @@ struct UserRepository : UserRepositoryType {
       if case let .failure(errors) = results {
          switch errors {
          case .error(.E03):
-            return .failure(.error(message: AppConstants.ERROR_DATA_NOTFOUND))
+            return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
          default:
-            return .failure(.error(message: AppConstants.ERROR_UNKWON))
+            return .failure(.error(message: errorText.ERROR_UNKWON))
          }
       }
       
-      return .failure(.error(message: AppConstants.ERROR_UNKWON))
+      return .failure(.error(message: errorText.ERROR_UNKWON))
    }
 }

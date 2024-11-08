@@ -13,12 +13,13 @@ struct MeOutputType : Decodable {
    let createdAt : String
    
    func toMeViewItem() -> MeViewItem {
-      return .init(nickname: nickname, phone: phone, sesacCoin: sesacCoin)
+      return .init(nickname: nickname, phone: phone, profileImage: profileImage, sesacCoin: sesacCoin)
    }
 }
 
 struct MeViewItem : Hashable {
    let nickname : String
    let phone : String?
+   let profileImage : String?
    let sesacCoin : Int
 }
