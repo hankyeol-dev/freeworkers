@@ -3,6 +3,7 @@
 Freeworkers/App/Sources/ENV/*
 Freeworkers/Database/Sources/ENV/*
 Freeworkers/Network/Sources/ENV/*
+Freeworkers/Image/Sources/ENV/*
 Freeworkers/Network/Sources/Constants/*
 
 ### macOS ###
