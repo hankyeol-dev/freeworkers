@@ -23,7 +23,7 @@ let appProject = Project(name: "APP",
                               dependencies: [
                                  .project(target: "FreeworkersNetworkKit", path: "../Network"),
                                  .project(target: "FreeworkersDBKit", path: "../Database"),
-                                 .external(name: "Kingfisher")
+                                 .project(target: "FreeworkersImageKit", path: "../Image")
                               ])
                          ],
                          fileHeaderTemplate: .string("hankyeol-dev.")
