@@ -13,7 +13,7 @@ struct CreateLoungeInput : Encodable {
    let description : String?
    
    var toDict : [String : String] {
-      return ["name" : name]
+      return description != nil ? ["name" : name, "description" : description!] : ["name" : name]
    }
 }
 
@@ -26,6 +26,10 @@ struct LoungeCommonOutputType : Decodable {
    let createdAt : String
    
    var toViewItem : LoungeListViewItem {
-      return .init(loungeId: workspace_id, loungeName: name, description: description, coverImage: coverImage)
+      return .init(loungeId: workspace_id, 
+                   loungeName: name,
+                   description: description,
+                   coverImage: coverImage,
+                   ownerId: owner_id)
    }
 }

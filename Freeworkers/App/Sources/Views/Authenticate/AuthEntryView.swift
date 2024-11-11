@@ -25,6 +25,7 @@ struct AuthEntryView : View {
       }
       .task {
          viewModel.send(action: .didLoad)
+         viewModel.send(action: .getME)
       }
    }
 }

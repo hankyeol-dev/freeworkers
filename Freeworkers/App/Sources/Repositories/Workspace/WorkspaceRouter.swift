@@ -6,6 +6,7 @@ import FreeworkersNetworkKit
 enum WorkspaceRouter : EndpointProtocol {
    case getLounges
    case getLounge(inputType : GetLoungeInputType)
+   case getLoungeMyChannel(loungeId : String)
    case getLoungeMembers(InputType : GetLoungeInputType)
    case inviteLounge(InputType : InviteLoungeInputType)
    case createLounge(inputType : CreateLoungeInputType)
@@ -14,6 +15,8 @@ enum WorkspaceRouter : EndpointProtocol {
       switch self {
       case let .getLounge(input):
          return "/workspaces/\(input.loungeId)"
+      case let .getLoungeMyChannel(loungeId):
+         return "/workspaces/\(loungeId)/my-channels"
       case let .inviteLounge(InputType):
          return "/workspaces/\(InputType.loungeId)/members"
       case let .getLoungeMembers(InputType):
@@ -52,7 +55,7 @@ enum WorkspaceRouter : EndpointProtocol {
    
    var method: NetworkMethod {
       switch self {
-      case .getLounges, .getLounge, .getLoungeMembers:
+      case .getLounges, .getLounge, .getLoungeMembers, .getLoungeMyChannel:
          return .GET
       case .createLounge, .inviteLounge:
          return .POST

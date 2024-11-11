@@ -73,7 +73,7 @@ final class AuthService : AuthServiceType {
                promise(.success(true))
             }
             
-            if case let .failure(failure) = loginState {
+            if case .failure = loginState {
                promise(.failure(.error(message: errorText.ERROR_LOGIN_WITH_APPLE)))
             }
          }.eraseToAnyPublisher()

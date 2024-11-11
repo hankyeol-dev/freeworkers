@@ -6,6 +6,7 @@ import FreeworkersNetworkKit
 protocol WorkspaceRepositoryType : CoreRepositoryType {
    func getLounges() async -> Result<[LoungeCommonOutputType], RepositoryErrors>
    func getLounge(input : GetLoungeInputType) async -> Result<GetLoungeOutputType, RepositoryErrors>
+   func getLoungeMyChannel(loungeId : String) async -> Result<[ChannelCommonOutputType], RepositoryErrors>
    func getLoungeMembers(input : GetLoungeInputType) async -> Result<[UserCommonOutputType], RepositoryErrors>
 
    func createRounge(input : CreateLoungeInput) async -> Result<Bool, RepositoryErrors>
@@ -21,7 +22,7 @@ struct WorkspaceRepository : WorkspaceRepositoryType {
       switch result {
       case let .success(output):
          return .success(output)
-      case let .failure(errors):
+      case .failure:
          return .failure(.error(message: errorText.ERROR_LOUNGE_NOT_FOUND))
       }
    }
@@ -43,13 +44,29 @@ struct WorkspaceRepository : WorkspaceRepositoryType {
       }
    }
    
+   func getLoungeMyChannel(loungeId: String) async -> Result<[ChannelCommonOutputType], RepositoryErrors> {
+      let result = await request(router: WorkspaceRouter.getLoungeMyChannel(loungeId: loungeId),
+                                 of: [ChannelCommonOutputType].self)
+      switch result {
+      case let .success(output):
+         return .success(output)
+      case let .failure(errors):
+         switch errors {
+         case .error(message: .E13):
+            return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
+         default:
+            return .failure(.error(message: errorText.ERROR_UNKWON))
+         }
+      }
+   }
+   
    func getLoungeMembers(input: GetLoungeInputType) async -> Result<[UserCommonOutputType], RepositoryErrors> {
       let result = await request(router: WorkspaceRouter.getLoungeMembers(InputType: input),
                                  of: [UserCommonOutputType].self)
       switch result {
       case let .success(output):
          return .success(output)
-      case let .failure(errors):
+      case .failure:
          return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
       }
    }
