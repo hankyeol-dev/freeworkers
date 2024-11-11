@@ -5,7 +5,6 @@ import SwiftData
 import Combine
 
 import FreeworkersDBKit
-import FreeworkersNetworkKit
 
 final class ChannelViewModel : ViewModelType {
    private let diContainer : DIContainer
@@ -16,6 +15,7 @@ final class ChannelViewModel : ViewModelType {
    
    @Published var chats : [Chat] = []
    @Published var chatText : String = ""
+   @Published var isDisplayChannelSetting : Bool = false
    
    init(diContainer : DIContainer, channelId : String, lougneId : String) {
       self.diContainer = diContainer
@@ -27,21 +27,24 @@ final class ChannelViewModel : ViewModelType {
       case enterChannel
       case fetchChannelData
       case sendChannelChat
+      
+      // Touch
       case moveOutFromChannel
+      case channelSettingButtonTapped
    }
    
    func send(action: Action) {
-      Task {
-         switch action {
-         case .enterChannel:
-            await enterChannel()
-         case .fetchChannelData:
-            await fetchChannelData()
-         case .sendChannelChat:
-            await sendChannelChat()
-         case .moveOutFromChannel:
-            await disconnectSocket()
-         }
+      switch action {
+      case .enterChannel:
+         Task { await enterChannel() }
+      case .fetchChannelData:
+         Task { await fetchChannelData() }
+      case .sendChannelChat:
+         Task { await sendChannelChat() }
+      case .moveOutFromChannel:
+         Task { await disconnectSocket() }
+      case .channelSettingButtonTapped:
+         pushToSettingView()
       }
    }
 }
@@ -81,19 +84,21 @@ extension ChannelViewModel {
                }
             }
             .store(in: &store)
+      } else {
+         // 3. 앱을 처음 설치했을 경우, 서버에서  이전 데이터를 모두 불러온다? => X
+         // - 생각해보면, 카카오톡도 아카이브를 하지 않는 이상 방 나왔다가 다시 들어가면 처음부터 시작임
+         Task { [weak self] in
+            await self?.connectSocket()
+         }
       }
-      
-      // 3. 앱을 처음 설치했을 경우, 서버에서  이전 데이터를 모두 불러온다? => X
-      // - 생각해보면, 카카오톡도 아카이브를 하지 않는 이상 방 나왔다가 다시 들어가면 처음부터 시작임
-      
-      
    }
    
    private func fetchChannelData() async {
       await diContainer.services.channelService.getChannelData(channelId: channelId)
          .receive(on: DispatchQueue.main)
          .sink { _ in } receiveValue: { [weak self] chats in
-            self?.chats = chats
+            let sort = SortDescriptor(\Chat.createdAt, order: .forward)
+            self?.chats = chats.sorted(using: sort)
          }
          .store(in: &store)
    }
@@ -120,20 +125,50 @@ extension ChannelViewModel {
    
    private func saveChannelChat(for chat: ChatSaveRequestType) async {
       let savedChat = await diContainer.services.channelService.saveChannelChat(loungeId: loungeId,
-                                                                                chat: chat)
+                                                                                chatRequest: chat)
       await MainActor.run { [weak self] in
          self?.chats.append(savedChat)
          self?.chatText = ""
       }
    }
    
-   // MEMO - TEST
-   private func connectSocket() async {
-      await SocketService.shared.connect(endpoint: ChatRouter.enterChannel(channelId: channelId))
+   private func saveReceivedChat(for chat : ChatSaveRequestType) async {
+      await diContainer.services.channelService.saveReceivedChat(
+         loungeId: loungeId,
+         chatRequest: chat
+      )
+      .receive(on: DispatchQueue.main)
+      .sink { chat in
+         if let chat {
+            Task {
+               await MainActor.run { [weak self] in
+                  self?.chats.append(chat)
+                  self?.chatText = ""
+               }
+            }
+         }
+      }
+      .store(in: &store)
    }
    
-   // MEMO - TEST
+   private func connectSocket() async {
+      await diContainer.services.channelService.connectSocket(channelId: channelId) { receivedChat in
+         do {
+            let chat = try JSONDecoder().decode(ChannelChatOutputType.self, from: receivedChat)
+            Task { [weak self] in
+               await self?.saveReceivedChat(for: chat.toSaveRequest)
+            }
+         } catch {
+            print(error)
+         }
+      }
+   }
+   
    private func disconnectSocket() async {
-      await SocketService.shared.disConnect()
+      await diContainer.services.channelService.disconnectSocket()
+   }
+   
+   private func pushToSettingView() {
+      diContainer.navigator.push(to: .channelSetting(channelId: channelId, loungeId: loungeId))
    }
 }

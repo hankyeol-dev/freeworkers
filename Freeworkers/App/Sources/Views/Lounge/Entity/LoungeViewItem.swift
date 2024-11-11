@@ -7,6 +7,7 @@ struct LoungeListViewItem : Hashable {
    let loungeName : String
    let description : String?
    let coverImage : String
+   let ownerId :  String
 }
 
 struct LoungeViewItem : Hashable {
@@ -14,10 +15,10 @@ struct LoungeViewItem : Hashable {
    let name : String
    let description : String?
    let coverImage : String
-   var channels : [ChannelCommonOutputType]
+   let ownerId : String
 }
 
-struct LougneChannelViewItem : Hashable {
+struct LoungeChannelViewItem : Hashable {
    let channelId : String
    let channelName : String
 }

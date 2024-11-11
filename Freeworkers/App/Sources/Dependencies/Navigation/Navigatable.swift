@@ -7,6 +7,7 @@ enum NavigationDestination : Hashable {
    // MARK: 여기에 네비게이션 할 뷰 케이스 할당
    case lounge(loungeId : String)
    case channel(channelTitle: String, channelId : String, loungeId : String)
+   case channelSetting(channelId : String, loungeId : String)
    case profile
 }
 

@@ -4,12 +4,15 @@ import Foundation
 import FreeworkersNetworkKit
 
 enum ChannelRouter : EndpointProtocol {
+   case getChannel(inputType : CommonChannelInputType)
    case createChannel(inputType : CreateChannelInputType)
-   case sendChannelChat(InputType : ChatInputType)
-   case getChannelChat(InputType : GetChatsInputType)
+   case sendChannelChat(inputType : ChatInputType)
+   case getChannelChat(inputType : GetChatsInputType)
    
    var path: String {
       switch self {
+      case let .getChannel(inputType):
+         return "/workspaces/\(inputType.loungeId)/channels/\(inputType.channelId)"
       case let .createChannel(inputType):
          return "/workspaces/\(inputType.loungeId)/channels"
       case let .sendChannelChat(inputType):
@@ -21,7 +24,7 @@ enum ChannelRouter : EndpointProtocol {
    
    var method: FreeworkersNetworkKit.NetworkMethod {
       switch self {
-      case .getChannelChat:
+      case .getChannelChat, .getChannel:
          return .GET
       default:
          return .POST
