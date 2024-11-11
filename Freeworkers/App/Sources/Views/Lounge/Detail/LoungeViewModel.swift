@@ -5,7 +5,7 @@ import Combine
 
 final class LoungeViewModel : ViewModelType {
    private let diContainer : DIContainer
-   private let loungeId : String
+   private var loungeId : String
    
    var store: Set<AnyCancellable> = .init()
    
@@ -13,9 +13,12 @@ final class LoungeViewModel : ViewModelType {
    @Published var sheetConfig : SheetConfig?
    @Published var channelToggleTapped : Bool = true
    @Published var directMessageToggleTapped : Bool = false
+   @Published var sideLoungeMenuTapped : Bool = false
+  
    @Published var loungeViewItem : LoungeViewItem = .init(
-      loungeId: "", name: "", description: "", coverImage: "", channels: []
-   )
+      loungeId: "", name: "", description: "", coverImage: "", ownerId: "")
+   @Published var loungeChannelViewItem : [LoungeChannelViewItem] = []
+   @Published var loungeListItem : [LoungeListViewItem] = []
    
    @Published var canCreateChannel : Bool = false
    @Published var createChannelName : String = ""
@@ -26,10 +29,13 @@ final class LoungeViewModel : ViewModelType {
       case channelToggleTapped
       case directMessageToggleTapped
       case createChannelButtonTapped
+      case sideLoungeMenuTapped
       case popToLounge
       
       // Data Fetch
       case fetchLounge
+      case fetchLounges
+      case switchLounge(loungeId : String)
       
       // Valid
       case canCreateChannel(name : String)
@@ -60,10 +66,18 @@ final class LoungeViewModel : ViewModelType {
          directMessageToggleTapped.toggle()
       case .createChannelButtonTapped:
          sheetConfig = .createChannelSheet
+      case .sideLoungeMenuTapped:
+         sideLoungeMenuTapped.toggle()
       case .popToLounge:
          diContainer.navigator.pop()
+         
       case .fetchLounge:
          Task { await fetchLounge() }
+      case .fetchLounges:
+         Task { await fetchLounges() }
+      case let .switchLounge(loungeId):
+         Task { await switchLounge(loungeId)}
+         
       case let .canCreateChannel(name):
          validCreateChannelName(name)
       case .createChannel:
@@ -83,7 +97,8 @@ extension LoungeViewModel {
       return loungeId
    }
    
-   fileprivate func fetchLounge() async {
+   @MainActor
+   private func fetchLounge() async {
       diContainer.services.authService.setLatestEnteredChannel(loungeId: loungeId)
       await diContainer.services.workspaceService.getLounge(input: .init(loungeId: loungeId))
          .receive(on: DispatchQueue.main)
@@ -91,21 +106,51 @@ extension LoungeViewModel {
             if case let .failure(error) = errors {
                print(error.errorMessage)
             }
-         } receiveValue: { viewItem in
-            Task {
-               await MainActor.run { [weak self] in
-                  self?.loungeViewItem = viewItem
-               }
+         } receiveValue: { [weak self] viewItem in
+            self?.loungeViewItem = viewItem
+         }
+         .store(in: &store)
+      
+      await diContainer.services.workspaceService.getLoungeMyChannel(loungeId: loungeId)
+         .receive(on: DispatchQueue.main)
+         .sink { errors in
+            if case let .failure(error) = errors {
+               print(error.errorMessage)
             }
+         } receiveValue: { [weak self] viewItems in
+            self?.loungeChannelViewItem = viewItems
          }
          .store(in: &store)
    }
    
-   fileprivate func validCreateChannelName(_ name : String) {
+   @MainActor
+   private func fetchLounges() async {
+      await diContainer.services.workspaceService.getLounges()
+         .receive(on: DispatchQueue.main)
+         .sink { errors in
+            if case let .failure(error) = errors {
+               print(error.errorMessage)
+            }
+         } receiveValue: { [weak self] list in
+            self?.loungeListItem = list
+         }
+         .store(in: &store)
+   }
+   
+   @MainActor
+   private func switchLounge(_ loungeId : String) async {
+      diContainer.services.authService.setLatestEnteredChannel(loungeId: loungeId)
+      self.loungeId = loungeId
+      send(action: .sideLoungeMenuTapped)
+      send(action: .fetchLounge)
+   }
+   
+   
+   private func validCreateChannelName(_ name : String) {
       canCreateChannel = diContainer.services.validateService.validateRoungeName(name)
    }
    
-   fileprivate func createChannel() async {
+   private func createChannel() async {
       let input: CreateChannelInputType = .init(loungeId: loungeId,
                                                 content: .init(
                                                    name: createChannelName,
@@ -118,7 +163,7 @@ extension LoungeViewModel {
                print(error.errorMessage)
             }
          } receiveValue: { [weak self] output in
-            self?.loungeViewItem.channels.append(output)
+            self?.loungeChannelViewItem.append(output.toLoungeChannelViewItem)
             self?.sheetConfig = nil
             self?.send(action: .channelToggleTapped)
          }

@@ -14,7 +14,7 @@ struct CreateChannelInputType {
    }
 }
 
-struct CreateChannelRecordInputType {
+struct CommonChannelInputType {
    let channelId : String
    let loungeId : String
 }

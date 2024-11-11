@@ -13,12 +13,8 @@ public struct NetworkService {
       let request = try await endpoint.asURLRequest()
       let (data, res) = try await session.data(for: request)
       
-      // MARK: response의 응답코드가 400인 경우, errorCode 값을 확인하여 에러 핸들링
-      guard let res = res as? HTTPURLResponse,
-            res.statusCode != 400 else {
-         let errorCode = try decoder.decode(ErrorOutputType.self, from: data).errorCode
-         print("errorCode: \(errorCode)")
-         throw handleErrorOutput(errorCode)
+      guard let res = res as? HTTPURLResponse, res.statusCode != 400 else {
+         throw handleErrorOutput(data)
       }
       
       do {
@@ -28,10 +24,28 @@ public struct NetworkService {
       }
    }
    
-   private static func handleErrorOutput(_ errorCode: String) -> NetworkErrors {
-      if let type = NetworkErrorTypes(rawValue: errorCode) {
-         return .error(message: type)
-      } else {
+   public static func requestImage(endpoint : EndpointProtocol) async throws -> Data? {
+      let request = try await endpoint.asURLRequest()
+      let (data, res) = try await session.data(for: request)
+      
+      guard let res = res as? HTTPURLResponse, res.statusCode != 400 else {
+         throw handleErrorOutput(data)
+      }
+      
+      return data
+   }
+   
+   private static func handleErrorOutput(_ data : Data) -> NetworkErrors {
+      // MARK: response의 응답코드가 400인 경우, errorCode 값을 확인하여 에러 핸들링
+      do {
+         let errorCode = try decoder.decode(ErrorOutputType.self, from: data).errorCode
+         print("errorCode: \(errorCode)")
+         if let type = NetworkErrorTypes(rawValue: errorCode) {
+            return .error(message: type)
+         } else {
+            return .error(message: .E00)
+         }
+      } catch {
          return .error(message: .E00)
       }
    }

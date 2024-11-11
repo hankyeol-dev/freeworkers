@@ -14,6 +14,8 @@ extension EndpointProtocol {
          AppEnvironment.contentTypeKey
          : routerType == .upload
          ? AppEnvironment.contentMultipart + "; boundary=\(boundary ?? UUID().uuidString)"
+         : routerType == .image
+         ? AppEnvironment.contentImage
          : AppEnvironment.contentDefault
       ]
       
@@ -26,11 +28,5 @@ extension EndpointProtocol {
       }
       
       return header
-   }
-}
-
-extension SockeEndpointProtocol {
-   var baseURL: String {
-      AppEnvironment.baseURL
    }
 }

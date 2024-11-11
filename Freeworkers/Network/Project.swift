@@ -13,7 +13,9 @@ let networkProject = Project(name: "FreeworkersNetworkKit",
                                  deploymentTargets: .iOS("17.0"),
                                  infoPlist: .extendingDefault(with: networkPlist),
                                  sources: ["Sources/**"],
-                                 dependencies: [])
+                                 dependencies: [
+                                    .package(product: "SocketIO", type: ., condition: <#T##PlatformCondition?#>)
+                                 ])
                              ],
                              fileHeaderTemplate: .string("hankyeol-dev.")
 )

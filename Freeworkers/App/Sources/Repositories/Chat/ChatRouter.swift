@@ -3,20 +3,17 @@
 import Foundation
 import FreeworkersNetworkKit
 
-enum ChatRouter : SockeEndpointProtocol {
+enum ChatRouter : SocketEndpointProtocol {
    case enterChannel(channelId : String)
    case enterDM(roomId : String)
    
-   var path: String {
+   var baseURL: String { return AppEnvironment.socketBaseURL }
+   var connectionType: SocketConnectionType {
       switch self {
       case let .enterChannel(channelId):
-         return "/ws-channel-\(channelId)"
+            return .channel(channelId: channelId)
       case let .enterDM(roomId):
-         return "/ws-dm-\(roomId)"
+         return .dm(roomId: roomId)
       }
-   }
-   
-   var pingInterval: TimeInterval {
-      return TimeInterval(5)
    }
 }

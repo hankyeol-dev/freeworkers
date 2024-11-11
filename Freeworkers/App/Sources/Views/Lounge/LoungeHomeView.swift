@@ -1,7 +1,6 @@
 // hankyeol-dev.
 
 import SwiftUI
-import Kingfisher
 
 struct LoungeHomeView : View {
    @EnvironmentObject var diContainer : DIContainer
@@ -26,18 +25,13 @@ struct LoungeHomeView : View {
          .navigationBarTitleDisplayMode(.inline)
          .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-               FWImage(
-                  imageURL: viewModel.profileImage,
-                  width: 20.0, height: 20.0
-               ) {
-                  Image(systemName: "person.circle")
-                     .resizable()
-                     .frame(width: 20.0, height: 20.0)
-               }
-               .clipShape(Circle())
-               .onTapGesture {
-                  viewModel.send(action: .pushToProfile)
-               }
+               FWImage(imagePath: viewModel.profileImage, placeholderImageName: "person.circle")
+                  .frame(width: 20.0, height: 20.0)
+                  .clipShape(Circle())
+                  .onTapGesture {
+                     viewModel.send(action: .pushToProfile)
+                  }
+                  .environmentObject(diContainer)
             }
          }
          .sheet(item: $viewModel.sheetConfig, onDismiss: {
@@ -46,8 +40,8 @@ struct LoungeHomeView : View {
             if case .displayCreateLounge = config {
                CreateLoungeView(
                   viewModel: .init(diContainer: diContainer, handler: { viewModel.sheetConfig = nil }))
-                  .presentationDragIndicator(.visible)
-                  .presentationDetents([.large])
+               .presentationDragIndicator(.visible)
+               .presentationDetents([.large])
             }
          }
          .task {
@@ -69,12 +63,9 @@ fileprivate struct LoungeListView : View {
          LazyVStack {
             ForEach(viewModel.userLoungeList, id: \.loungeId) { lounge in
                HStack {
-                  FWImage(imageURL: lounge.coverImage, width: 36.0, height: 36.0) {
-                     Image(.photoIcon)
-                        .resizable()
-                        .frame(width: 36.0, height: 36.0)
-                  }
-                  .clipShape(RoundedRectangle(cornerRadius: 10.0))
+                  FWImage(imagePath: lounge.coverImage)
+                     .frame(width: 36.0, height: 36.0)
+                     .clipShape(RoundedRectangle(cornerRadius: 10.0))
                   
                   VStack (alignment : .leading) {
                      Text(lounge.loungeName)
