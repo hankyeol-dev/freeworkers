@@ -14,48 +14,15 @@ struct RoutingView : View {
             .navigationBarBackButtonHidden()
       case let .channel(channelTitle, channelId, loungeId):
          ChannelView(viewModel: .init(diContainer: diContainer, channelId: channelId, lougneId: loungeId))
-            .navigationTitle(channelTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden()
-            .toolbar {
-               ToolbarItem(id: "backToLounge",
-                           placement: .topBarLeading) {
-                  Button {
-                     diContainer.navigator.pop()
-                  } label: {
-                     Image(systemName: "chevron.left")
-                        .resizable()
-                        .frame(width: 6.0, height: 10.0)
-                        .foregroundStyle(.black)
-                  }
-               }
-            }
-            .toolbarBackground(Color.bg, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .fwNavigationBackStyle(channelTitle) { diContainer.navigator.pop() }
       case let .channelSetting(channelId, loungeId):
          ChannelSettingView(viewModel: .init(diContainer: diContainer,
                                              loungeId: loungeId,
                                              channelId: channelId))
-         .navigationTitle("채널 설정")
-         .navigationBarTitleDisplayMode(.inline)
-         .navigationBarBackButtonHidden()
-         .toolbar {
-            ToolbarItem(id: "backToChannel",
-                        placement: .topBarLeading) {
-               Button {
-                  diContainer.navigator.pop()
-               } label: {
-                  Image(systemName: "chevron.left")
-                     .resizable()
-                     .frame(width: 6.0, height: 10.0)
-                     .foregroundStyle(.black)
-               }
-            }
-         }
-         .toolbarBackground(Color.bg, for: .navigationBar)
-         .toolbarBackground(.visible, for: .navigationBar)
+         .fwNavigationBackStyle(workspaceTitle.CHANNEL_SETTING_TITLE) { diContainer.navigator.pop() }
       case .profile:
          ProfileView()
+            .fwNavigationBackStyle(workspaceTitle.PROFILE_SETTING_TITLE) { diContainer.navigator.pop() }
       }
    }
 }

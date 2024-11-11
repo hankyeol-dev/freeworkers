@@ -16,4 +16,8 @@ extension View {
                                           primary: primary,
                                           secondary: secondary))
    }
+   
+   func fwNavigationBackStyle(_ title : String, _ popAction : @escaping () -> Void) -> some View {
+      self.modifier(FWNavigationBackBarStyle(title : title, popAction: popAction))
+   }
 }

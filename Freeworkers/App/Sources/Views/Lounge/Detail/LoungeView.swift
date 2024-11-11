@@ -14,10 +14,6 @@ struct LoungeView : View {
          tabView
          LoungeSideMenu(isDisplay: $viewModel.sideLoungeMenuTapped, viewModel: viewModel)
       }
-      .task {
-         viewModel.send(action: .fetchLounge)
-         // UITabBar.appearance().scrollEdgeAppearance = .init()
-      }
       .sheet(item: $viewModel.sheetConfig) { config in
          switch config {
          case .createChannelSheet:
@@ -91,6 +87,15 @@ fileprivate struct LoungeMainView : View {
                Text(viewModel.loungeViewItem.name.isEmpty ? "라운지" : viewModel.loungeViewItem.name)
                   .foregroundStyle(.black)
                Spacer()
+               if let meViewItem = viewModel.meViewItem,
+                  let profileImage = meViewItem.profileImage {
+                  FWImage(imagePath: profileImage)
+                     .frame(width: 25.0, height: 25.0)
+                     .clipShape(Circle())
+                     .onTapGesture {
+                        viewModel.send(action: .pushToProfile)
+                     }
+               }
             }
             .padding()
             .background(Color.bg)
@@ -138,6 +143,9 @@ fileprivate struct LoungeMainView : View {
          }
          .navigationDestination(for: NavigationDestination.self) { destination in
             RoutingView(destination: destination)
+         }
+         .task {
+            viewModel.send(action: .fetchLounge)
          }
       }
    }
