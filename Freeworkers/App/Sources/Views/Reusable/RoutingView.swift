@@ -21,7 +21,7 @@ struct RoutingView : View {
                ToolbarItem(id: "backToLounge",
                            placement: .topBarLeading) {
                   Button {
-                     dismiss()
+                     diContainer.navigator.pop()
                   } label: {
                      Image(systemName: "chevron.left")
                         .resizable()
@@ -32,6 +32,28 @@ struct RoutingView : View {
             }
             .toolbarBackground(Color.bg, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+      case let .channelSetting(channelId, loungeId):
+         ChannelSettingView(viewModel: .init(diContainer: diContainer,
+                                             loungeId: loungeId,
+                                             channelId: channelId))
+         .navigationTitle("채널 설정")
+         .navigationBarTitleDisplayMode(.inline)
+         .navigationBarBackButtonHidden()
+         .toolbar {
+            ToolbarItem(id: "backToChannel",
+                        placement: .topBarLeading) {
+               Button {
+                  diContainer.navigator.pop()
+               } label: {
+                  Image(systemName: "chevron.left")
+                     .resizable()
+                     .frame(width: 6.0, height: 10.0)
+                     .foregroundStyle(.black)
+               }
+            }
+         }
+         .toolbarBackground(Color.bg, for: .navigationBar)
+         .toolbarBackground(.visible, for: .navigationBar)
       case .profile:
          ProfileView()
       }
