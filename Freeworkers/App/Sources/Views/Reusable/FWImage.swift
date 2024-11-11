@@ -1,66 +1,85 @@
 // hankyeol-dev.
 
 import SwiftUI
-import Kingfisher
+import UIKit
+import Combine
 
-struct FWImage<PlaceholderView : View> : View {
-   private var imageURL : String
-   private var width : CGFloat
-   private var height : CGFloat
+struct FWImage : View {
+   @EnvironmentObject var diConatiner : DIContainer // TODO: background issue 해결하기
+   let imagePath : String
+   let placeholderImageName : String
    
-   private var placeholderView : () -> PlaceholderView
-   
-   @State private var imageModifier : AnyModifier = .init { request in
-      request
+   init(imagePath: String, placeholderImageName: String? = nil) {
+      self.imagePath = imagePath
+      self.placeholderImageName = placeholderImageName ?? ""
    }
-   
-   init(imageURL : String, 
-        width : CGFloat,
-        height : CGFloat,
-        placeholderView : @escaping () -> PlaceholderView) {
-      self.imageURL = imageURL
-      self.width = width
-      self.height = height
-      self.placeholderView = placeholderView
-   }
-   
    
    var body: some View {
-      KFImage(getImageURL)
-         .requestModifier(imageModifier)
-         .fade(duration: 0.25)
-         .onFailure({ error in
-//            print(error)
-         })
-         .placeholder {
-            placeholderView()
-         }
+      FWImageInner(viewModel: .init(diContainer: diConatiner, imagePath: imagePath),
+                   placeholderImageName: placeholderImageName).id(imagePath)
+   }
+}
+
+struct FWImageInner : View {
+   @StateObject var viewModel : ViewModel
+   let placeholderImageName : String
+   private var placeholderImage : UIImage {
+      UIImage(named: placeholderImageName) ?? UIImage(resource: .home)
+   }
+   
+   var body: some View {
+      Image(uiImage: viewModel.loadedImage ?? placeholderImage)
          .resizable()
-         .frame(width: width, height: height)
-         .scaledToFill()
-         .task {
-            await getImageModifier()
+         .aspectRatio(contentMode: .fill)
+         .onAppear {
+            viewModel.send(action: .fetchImage)
          }
    }
-   
-   private var getImageURL : URL? {
-      URL(string : AppEnvironment.baseURL + imageURL)
-   }
-   
-   private func getImageModifier() async {
-      let token = await UserDefaultsRepository.shared.getValue(.accessToken)
-      let headers = [
-         AppEnvironment.contentTypeKey : "image/png",
-         AppEnvironment.secretKey : AppEnvironment.secret,
-         AppEnvironment.authorizationKey : token
-      ]
-      let modifier = AnyModifier { req in
-         var request = req
-         for (key, value) in headers {
-            request.setValue(value, forHTTPHeaderField: key)
-         }
-         return request
+}
+
+extension FWImageInner {
+   final class ViewModel : ViewModelType {
+      private let diContainer : DIContainer
+      private let imagePath : String
+
+      var store: Set<AnyCancellable> = .init()
+      var isLoadingOrFetched : Bool {
+         return isLoading || loadedImage != nil
       }
-      imageModifier = modifier
+      
+      init(diContainer : DIContainer, imagePath : String) {
+         self.diContainer = diContainer
+         self.imagePath = imagePath
+      }
+
+      @Published var isLoading : Bool = false
+      @Published var loadedImage : UIImage?
+
+      enum Action {
+         case fetchImage
+      }
+
+      func send(action: Action) {
+         if case .fetchImage = action {
+            Task { await fetchImage() }
+         }
+      }
+      
+      private func fetchImage() async {
+         isLoading = true
+         await diContainer.services.imageService.getImage(imagePath)
+            .subscribe(on: DispatchQueue.global())
+            .receive(on: DispatchQueue.main)
+            .sink { fetchImageOutput in
+               Task {
+                  await MainActor.run { [weak self] in
+                     guard let self else { return }
+                     isLoading = false
+                     loadedImage = fetchImageOutput
+                  }
+               }
+            }
+            .store(in: &store)
+      }
    }
 }
