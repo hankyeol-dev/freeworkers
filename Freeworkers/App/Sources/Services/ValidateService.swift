@@ -6,6 +6,7 @@ protocol ValidateServiceType {
    func validateEmail(_ email: String) -> Bool
    func validatePassword(_ password: String) -> Bool
    func validateRoungeName(_ name: String) -> Bool
+   func validateIsLoungeOwner(_ ownerId : String) async -> Bool
 }
 
 struct ValidateService : ValidateServiceType {
@@ -21,8 +22,14 @@ struct ValidateService : ValidateServiceType {
       return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: password)
    }
    
-   /// - Freeworkers Rounge Name 유효성 검사
+   /// - Freeworkers Lounge Name 유효성 검사
    func validateRoungeName(_ name : String) -> Bool {
       return name.count >= 1 && name.count < 30
+   }
+   
+   /// - Lounge Setting View에서 유저 라운지 소유 여부 검사
+   func validateIsLoungeOwner(_ ownerId: String) async -> Bool {
+      let userId = await UserDefaultsRepository.shared.getValue(.userId)
+      return ownerId == userId
    }
 }

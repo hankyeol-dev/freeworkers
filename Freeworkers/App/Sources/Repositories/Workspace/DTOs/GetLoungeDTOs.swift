@@ -22,6 +22,6 @@ struct GetLoungeOutputType : Decodable {
                    name: name,
                    description: description,
                    coverImage: coverImage,
-                   channels: channels)
+                   ownerId: owner_id)
    }
 }

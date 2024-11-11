@@ -6,6 +6,7 @@ import Combine
 protocol WorkspaceServiceType {
    func getLounges() async -> AnyPublisher<[LoungeListViewItem], ServiceErrors>
    func getLounge(input : GetLoungeInputType) async -> AnyPublisher<LoungeViewItem, ServiceErrors>
+   func getLoungeMyChannel(loungeId : String) async -> AnyPublisher<[LoungeChannelViewItem], ServiceErrors>
    func getLoungeMembers(input : GetLoungeInputType) async -> AnyPublisher<[UserCommonOutputType], ServiceErrors>
    
    func createWorkspace(input : CreateLoungeInput) async -> AnyPublisher<Bool, ServiceErrors>
@@ -43,6 +44,18 @@ extension WorkspaceService {
             promise(.success(output.toViewItem))
          case let .failure(error):
             promise(.failure(.error(message: error.errorMessage)))
+         }
+      }.eraseToAnyPublisher()
+   }
+   
+   func getLoungeMyChannel(loungeId: String) async -> AnyPublisher<[LoungeChannelViewItem], ServiceErrors> {
+      let result = await workspaceRepository.getLoungeMyChannel(loungeId: loungeId)
+      return Future { promise in
+         switch result {
+         case let .success(output):
+            promise(.success(output.map { $0.toLoungeChannelViewItem }))
+         case let .failure(errors):
+            promise(.failure(.error(message: errors.errorMessage)))
          }
       }.eraseToAnyPublisher()
    }
