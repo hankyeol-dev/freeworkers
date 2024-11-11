@@ -4,7 +4,7 @@ import UIKit
 import Combine
 
 protocol ImageServiceType {
-   func getImage(_ imagePath : String) async -> AnyPublisher<UIImage?, Never>
+   func getImage(_ imagePath : String) async -> UIImage?
 }
 
 struct ImageService : ImageServiceType {
@@ -16,14 +16,7 @@ struct ImageService : ImageServiceType {
 }
 
 extension ImageService {
-   func getImage(_ imagePath: String) async -> AnyPublisher<UIImage?, Never> {
-      let image = await imageRepository.getImage(imagePath)
-      return Future { promise in
-         if let image {
-            promise(.success(image))
-         } else {
-            promise(.success(nil))
-         }
-      }.eraseToAnyPublisher()
+   func getImage(_ imagePath: String) async -> UIImage? {
+      return await imageRepository.getImage(imagePath)
    }
 }
