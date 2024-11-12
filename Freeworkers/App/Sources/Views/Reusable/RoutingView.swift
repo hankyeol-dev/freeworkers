@@ -21,8 +21,17 @@ struct RoutingView : View {
                                              channelId: channelId))
          .fwNavigationBackStyle(workspaceTitle.CHANNEL_SETTING_TITLE) { diContainer.navigator.pop() }
       case .profile:
-         ProfileView()
+         ProfileView(viewModel: .init(diContainer: diContainer))
             .fwNavigationBackStyle(workspaceTitle.PROFILE_SETTING_TITLE) { diContainer.navigator.pop() }
+      case let .fillCoin(coin):
+         ProfileFillCoinView(coin: coin)
+            .fwNavigationBackStyle("코인 충전") { diContainer.navigator.pop() }
+      case let .patchNickname(nickname):
+         ProfilePatchNicknameView(nickname: nickname, baseNickname: nickname)
+            .fwNavigationBackStyle("닉네임 수정") { diContainer.navigator.pop() }
+      case let .patchPhone(phone):
+         ProfilePatchPhoneView(phone: phone, basePhone: phone)
+            .fwNavigationBackStyle("전화번호 수정") { diContainer.navigator.pop() }
       }
    }
 }
