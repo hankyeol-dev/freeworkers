@@ -24,9 +24,14 @@ extension CoreRepositoryType {
          if isRefresh {
             return await request(router: router, of: of)
          } else {
-            await logout()
-            return .failure(.error(message: .E00))
+            await dummyLogin()
+            return await request(router: router, of: of)
+//            await logout()
+//            return .failure(.error(message: .E00))
          }
+      } catch NetworkErrors.error(message: .E06) {
+         await dummyLogin()
+         return await request(router: router, of: of)
       } catch {
          return .failure(error as? NetworkErrors ?? NetworkErrors.error(message: .E00))
       }
@@ -41,5 +46,20 @@ extension CoreRepositoryType {
       await UserDefaultsRepository.shared.setValue(.accessToken, value: "")
       await UserDefaultsRepository.shared.setValue(.refreshToken, value: "")
       await UserDefaultsRepository.shared.setLoginState(false)
+   }
+   
+   fileprivate func dummyLogin() async {
+      let loginInput = AppEnvironment.dummyLoginInput
+      let result = await request(router: AuthRouter.login(inputType: loginInput),
+                                 of: CommonAuthOutputType.self)
+      switch result {
+      case let .success(output):
+         await UserDefaultsRepository.shared.setValue(.accessToken, value: output.token.accessToken)
+         await UserDefaultsRepository.shared.setValue(.refreshToken, value: output.token.refreshToken)
+         await UserDefaultsRepository.shared.setValue(.userId, value: output.user_id)
+         await UserDefaultsRepository.shared.setLoginState(true)
+      default:
+         break
+      }
    }
 }
