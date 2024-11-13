@@ -47,7 +47,7 @@ enum ChannelRouter : EndpointProtocol {
             if inputType.chatInput.isFilesEmpty {
                return await setHeader(.request, needToken: true)
             } else {
-               return await setHeader(.upload, needToken: true)
+               return await setHeader(.upload, needToken: true, boundary: inputType.boundary)
             }
          default:
             return await setHeader(.request, needToken: true)
@@ -63,9 +63,12 @@ enum ChannelRouter : EndpointProtocol {
          if inputType.chatInput.isFilesEmpty {
             return inputType.chatInput.content.toJSON
          } else {
-            return asMultipartFormDatas(boundary: UUID().uuidString,
+            return asMultipartFormDatas(boundary: inputType.boundary,
+                                        fileKey: "files",
                                         files: inputType.chatInput.files,
-                                        content: asMultipartContentDatas(input: inputType.chatInput.content))
+                                        content: inputType.chatInput.content.content.isEmpty
+                                        ? nil 
+                                        : ["content" : inputType.chatInput.content.content])
          }
       default:
          return nil

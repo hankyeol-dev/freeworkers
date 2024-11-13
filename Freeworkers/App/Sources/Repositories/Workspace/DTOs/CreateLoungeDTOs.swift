@@ -30,6 +30,7 @@ struct LoungeCommonOutputType : Decodable {
                    loungeName: name,
                    description: description,
                    coverImage: coverImage,
-                   ownerId: owner_id)
+                   ownerId: owner_id,
+                   createdAt: createdAt)
    }
 }
