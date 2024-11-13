@@ -3,6 +3,7 @@
 import Foundation
 import SwiftData
 import Combine
+import _PhotosUI_SwiftUI
 
 import FreeworkersDBKit
 
@@ -14,8 +15,16 @@ final class ChannelViewModel : ViewModelType {
    var store: Set<AnyCancellable> = .init()
    
    @Published var chats : [Chat] = []
+   @Published var selectedChat : Chat?
+   
+   @Published var photoSelection : [PhotosPickerItem] = []
+   @Published var photoDatas : [(UIImage, Data)] = []
+   @Published var photoViewerIndex : Int = 0
+   
    @Published var chatText : String = ""
+   
    @Published var isDisplayChannelSetting : Bool = false
+   @Published var isDisplayPhotoViewer : Bool = false
    
    init(diContainer : DIContainer, channelId : String, lougneId : String) {
       self.diContainer = diContainer
@@ -25,26 +34,34 @@ final class ChannelViewModel : ViewModelType {
    
    enum Action {
       case enterChannel
-      case fetchChannelData
       case sendChannelChat
       
       // Touch
       case moveOutFromChannel
       case channelSettingButtonTapped
+      case deSelectPhoto(data : UIImage)
+      case selectChatImage(chatIndex : Int, imageIndex : Int)
+      case togglePhotoViewer
    }
    
    func send(action: Action) {
       switch action {
       case .enterChannel:
          Task { await enterChannel() }
-      case .fetchChannelData:
-         Task { await fetchChannelData() }
       case .sendChannelChat:
          Task { await sendChannelChat() }
       case .moveOutFromChannel:
          Task { await disconnectSocket() }
       case .channelSettingButtonTapped:
          pushToSettingView()
+      case let .deSelectPhoto(data):
+         deSelectPhoto(data)
+      case let .selectChatImage(chatIndex, imageIndex):
+         selectedChat = chats[chatIndex]
+         photoViewerIndex = imageIndex
+         send(action: .togglePhotoViewer)
+      case .togglePhotoViewer:
+         isDisplayPhotoViewer.toggle()
       }
    }
 }
@@ -57,23 +74,26 @@ extension ChannelViewModel {
    
    private func enterChannel() async {
       // 1. database에서 저장된 데이터를 먼저 가지고 온다.
-      await fetchChannelData()
-      var requestInput : GetChatsInputType
-      
-      // 2. database에서 불러온 데이터 중 마지막 데이터의 created_at 값으로 서버에 조회한다.
-      if let latestChatDate = chats.last?.createdAt {
-         requestInput = .init(loungeId: loungeId, roomId: channelId, createdAt: latestChatDate)
-      } else {
-         // 3. 앱을 처음 설치했을 경우, 서버에서  이전 데이터를 모두 불러온다? => X
-         // - 생각해보면, 카카오톡도 아카이브를 하지 않는 이상 방 나왔다가 다시 들어가면 처음부터 시작임
-         // - 근데 또 생각해보면, 해당 채널에 참여하려고 하는 사람일수도?
-         // => 불러오는게 맞는 듯.
-         requestInput = .init(loungeId: loungeId, roomId: channelId, createdAt: nil)
+      await fetchChannelData { [weak self] chats in
+         guard let self else { return }
+         var requestInput : GetChatsInputType
+         print("여기가 1번")
+         // 2. database에서 불러온 데이터 중 마지막 데이터의 created_at 값으로 서버에 조회한다.
+         if let latestChatDate = chats.last?.createdAt {
+            requestInput = .init(loungeId: loungeId, roomId: channelId, createdAt: latestChatDate)
+         } else {
+            // 3. 앱을 처음 설치했을 경우, 서버에서  이전 데이터를 모두 불러온다? => X
+            // - 생각해보면, 카카오톡도 아카이브를 하지 않는 이상 방 나왔다가 다시 들어가면 처음부터 시작임
+            // - 근데 또 생각해보면, 해당 채널에 참여하려고 하는 사람일수도?
+            // => 불러오는게 맞는 듯.
+            requestInput = .init(loungeId: loungeId, roomId: channelId, createdAt: nil)
+         }
+         
+         await fetchChannelChats(requestInput)
       }
-      
-      await fetchChannelChats(requestInput)
    }
    
+   @MainActor
    private func fetchChannelChats(_ requestInput : GetChatsInputType) async {
       await diContainer.services.channelService.getChannelChats(input: requestInput)
          .receive(on: DispatchQueue.main)
@@ -98,21 +118,34 @@ extension ChannelViewModel {
          .store(in: &store)
    }
    
-   private func fetchChannelData() async {
+   @MainActor
+   private func fetchChannelData(_ fetchedHandler : @escaping ([Chat]) async -> Void) async {
       await diContainer.services.channelService.getChannelData(channelId: channelId)
          .receive(on: DispatchQueue.main)
          .sink { _ in } receiveValue: { [weak self] chats in
             let sort = SortDescriptor(\Chat.createdAt, order: .forward)
             self?.chats = chats.sorted(using: sort)
+            Task { await fetchedHandler(chats) }
          }
          .store(in: &store)
+   }
+   
+   private func deSelectPhoto(_ data: UIImage) {
+      guard let index = photoDatas.firstIndex(where: { $0.0 == data }) else {
+         return
+      }
+      // TODO: 왜 안되는걸까?
+      photoSelection.remove(at: index)
+      photoDatas.remove(at: index)
    }
 }
 
 // MARK: Chat Save
 extension ChannelViewModel {
    private func sendChannelChat() async {
-      let chatInput : CommonChatInput = .init(content: .init(content: chatText), files: [])
+      let chatInput : CommonChatInput = .init(
+         content: .init(content: chatText), files: photoDatas.map { $0.1 }
+      )
       let input : ChatInputType = .init(loungeId: loungeId, roomId: channelId, chatInput: chatInput)
       
       await diContainer.services.channelService.sendChannelChat(input: input)
@@ -140,6 +173,7 @@ extension ChannelViewModel {
          )
          chats.append(savedChat)
          chatText = ""
+         photoDatas = []
       }
    }
    

@@ -5,15 +5,11 @@ import FreeworkersDBKit
 
 struct FWChat : View {
    private let chat : Chat
-   /**
-    - 프로필 이미지 - 프로필 이름
-    - 채팅
-    - 이미지 있다면
-    
-    */
-   
-   init(chat: Chat) {
+   private var imageTapHandler : (Int) -> Void
+
+   init(chat: Chat, imageTapHandler : @escaping (Int) -> Void) {
       self.chat = chat
+      self.imageTapHandler = imageTapHandler
    }
    
    var body: some View {
@@ -106,6 +102,11 @@ struct FWChat : View {
          FWImage(imagePath: chat.files[0])
             .frame(width: 130.0, height: 130.0)
             .clipShape(RoundedRectangle(cornerRadius: 10.0))
+            .onTapGesture {
+               withAnimation(.easeInOut) {
+                  imageTapHandler(0)
+               }
+            }
       } else {
          HStack {
             if chat.me {
@@ -113,26 +114,32 @@ struct FWChat : View {
             }
             LazyVGrid(columns: columns, alignment: .center) {
                ForEach(chat.files.indices, id:\.self) { index in
-                  ZStack {
-                     let width : CGFloat = counts == 0
-                     ? 0
-                     : counts == 1
-                     ? 150.0 : (maxWidth) / CGFloat(maxCounts)
-                     
-                     if index < 3 {
-                        FWImage(imagePath: chat.files[index])
-                           .frame(width: width, height: width)
-                           .clipShape(RoundedRectangle(cornerRadius: 10.0))
+                  Button {
+                     withAnimation(.easeInOut) {
+                        imageTapHandler(index)
                      }
-                     if counts > 3 && index == 2 {
-                        RoundedRectangle(cornerRadius: 10.0)
-                           .fill(.black.opacity(0.5))
-                           .frame(width: width, height: width)
-                           .overlay {
-                              Text("+ \(counts - 3)")
-                                 .font(.fwT1)
-                                 .foregroundStyle(.white)
-                           }
+                  } label: {
+                     ZStack {
+                        let width : CGFloat = counts == 0
+                        ? 0
+                        : counts == 1
+                        ? 150.0 : (maxWidth) / CGFloat(maxCounts)
+                        
+                        if index < 3 {
+                           FWImage(imagePath: chat.files[index])
+                              .frame(width: width, height: width)
+                              .clipShape(RoundedRectangle(cornerRadius: 10.0))
+                        }
+                        if counts > 3 && index == 2 {
+                           RoundedRectangle(cornerRadius: 10.0)
+                              .fill(.black.opacity(0.5))
+                              .frame(width: width, height: width)
+                              .overlay {
+                                 Text("+ \(counts - 3)")
+                                    .font(.fwT1)
+                                    .foregroundStyle(.white)
+                              }
+                        }
                      }
                   }
                }
