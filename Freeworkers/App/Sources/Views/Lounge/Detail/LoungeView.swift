@@ -54,16 +54,20 @@ struct LoungeView : View {
             .tag(LoungeTabItem.search)
             .id(LoungeTabItem.search)
          
-         LoungeSettingView(viewModel: .init(diContainer: diContainer,
-                                            loungeItem: viewModel.loungeViewItem)
-         )
-         .tabItem {
-            viewModel.selectedTab == .setting
-            ? LoungeTabItem.setting.toActiveImage
-            : LoungeTabItem.setting.toInActiveImage
+         if let loungeViewItem = viewModel.loungeViewItem {
+            LoungeSettingView(
+               viewModel: .init(
+                  diContainer: diContainer,
+                  loungeItem: loungeViewItem)
+            )
+            .tabItem {
+               viewModel.selectedTab == .setting
+               ? LoungeTabItem.setting.toActiveImage
+               : LoungeTabItem.setting.toInActiveImage
+            }
+            .tag(LoungeTabItem.setting)
+            .id(LoungeTabItem.setting)
          }
-         .tag(LoungeTabItem.setting)
-         .id(LoungeTabItem.setting)
       }
    }
    
@@ -76,30 +80,7 @@ fileprivate struct LoungeMainView : View {
    var body: some View {
       NavigationStack(path: $diContainer.navigator.destination) {
          VStack {
-            HStack(spacing: 20.0) {
-               Image(.sideMenu)
-                  .resizable()
-                  .frame(width: 20.0, height: 20.0)
-                  .onTapGesture {
-                     viewModel.send(action: .sideLoungeMenuTapped)
-                     viewModel.send(action: .fetchLounges)
-                  }
-               Text(viewModel.loungeViewItem.name.isEmpty ? "라운지" : viewModel.loungeViewItem.name)
-                  .foregroundStyle(.black)
-               Spacer()
-               if let meViewItem = viewModel.meViewItem,
-                  let profileImage = meViewItem.profileImage {
-                  FWImage(imagePath: profileImage)
-                     .frame(width: 25.0, height: 25.0)
-                     .clipShape(Circle())
-                     .onTapGesture {
-                        viewModel.send(action: .pushToProfile)
-                     }
-               }
-            }
-            .padding()
-            .background(Color.bg)
-            .frame(height: 40.0)
+            header
             
             ScrollView {
                LazyVStack(spacing: 15.0) {
@@ -131,6 +112,23 @@ fileprivate struct LoungeMainView : View {
                   }
                   .padding(.leading, 25.0)
                   
+                  HStack {
+                     Button {
+                        viewModel.send(action: .findChannelButtonTapped)
+                     } label: {
+                        HStack(spacing : 5.0) {
+                           Image(systemName: "plus")
+                              .font(.fwRegular)
+                              .foregroundStyle(.black)
+                           Text(buttonTitle.FIND_CHANNEL)
+                              .font(.fwRegular)
+                              .foregroundStyle(.black)
+                           Spacer()
+                        }
+                     }
+                  }
+                  .padding(.leading, 25.0)
+                  
                   Divider()
                   
                   // TODO: DMs 화면 구축 필요
@@ -141,6 +139,9 @@ fileprivate struct LoungeMainView : View {
             
             Spacer()
          }
+         .fullScreenCover(isPresented: $viewModel.findChannelTapped) {
+            findChannelView
+         }
          .navigationDestination(for: NavigationDestination.self) { destination in
             RoutingView(destination: destination)
          }
@@ -148,6 +149,74 @@ fileprivate struct LoungeMainView : View {
             viewModel.send(action: .fetchLounge)
          }
       }
+   }
+   
+   private var header : some View {
+      HStack(spacing: 20.0) {
+         Image(.sideMenu)
+            .resizable()
+            .frame(width: 20.0, height: 20.0)
+            .onTapGesture {
+               viewModel.send(action: .sideLoungeMenuTapped)
+               viewModel.send(action: .fetchLounges)
+            }
+         if let loungeViewItem = viewModel.loungeViewItem {
+            Text(loungeViewItem.name)
+               .foregroundStyle(.black)
+         }
+
+         Spacer()
+         if let meViewItem = viewModel.meViewItem,
+            let profileImage = meViewItem.profileImage {
+            FWImage(imagePath: profileImage)
+               .frame(width: 25.0, height: 25.0)
+               .clipShape(Circle())
+               .onTapGesture {
+                  viewModel.send(action: .pushToProfile)
+               }
+         }
+      }
+      .padding()
+      .background(Color.bg)
+      .frame(height: 40.0)
+   }
+   
+   private var findChannelView : some View {
+      VStack {
+         HStack {
+            Image(systemName: "xmark")
+               .resizable()
+               .frame(width: 15.0, height: 15.0)
+               .foregroundStyle(.black)
+               .onTapGesture {
+                  viewModel.send(action: .findChannelButtonTapped)
+               }
+            Spacer()
+         }
+         .padding(25.0)
+         
+         if let viewItem = viewModel.loungeViewItem {
+            ForEach(viewItem.channels, id: \.channelId) { channel in
+               LazyVStack {
+                  Text("# \(channel.channelName)")
+                     .font(.system(size: 16.0))
+                     .frame(maxWidth: .infinity, alignment: .leading)
+                     .padding(.horizontal, 25.0)
+                     .padding(.vertical, 5.0)
+                     .onTapGesture {
+                        viewModel.send(action: .findChannelButtonTapped)
+                        viewModel.send(
+                           action: .pushToChannel(channelTitle: channel.channelName,
+                                                  channelId: channel.channelId)
+                        )
+                     }
+               }
+            }
+         }
+         
+         Spacer()
+      }
+      .background(Color.bg)
    }
 }
 
@@ -180,20 +249,31 @@ fileprivate struct LoungeSideMenu : View {
                   ScrollView(.vertical) {
                      ForEach(viewModel.loungeListItem, id: \.loungeId) { lounge in
                         LazyVStack {
-                           HStack(spacing: 10.0) {
-                              Spacer()
+                           HStack(spacing: 12.0) {
+                              Spacer.width(10.0)
                               FWImage(imagePath: lounge.coverImage)
-                                 .frame(width: 20.0, height: 20.0)
+                                 .frame(width: 44.0, height: 44.0)
                                  .clipShape(RoundedRectangle(cornerRadius: 8.0))
-                              Text(lounge.loungeName)
-                                 .font(.system(size: 16.0, weight: .regular))
-                                 .padding(15.0)
+                              
+                              VStack(alignment: .leading, spacing: 5.0) {
+                                 Text(lounge.loungeName)
+                                    .font(.fwT2)
+                                    .foregroundStyle(.black)
+                                    .lineLimit(1)
+                                 Text(lounge.createdAt)
+                                    .font(.fwRegular)
+                                    .foregroundStyle(.gray.opacity(1.5))
+                              }
+                              
+                              Spacer()
                            }
+                           .frame(height: 60.0)
                            .background(viewModel.getLoungeId() == lounge.loungeId
                                        ? Color.primary.opacity(0.5) : Color.clear)
-                           .clipShape(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 8.0,
-                                                                                bottomLeading: 8.0)))
-                           .padding(.vertical, 5.0)
+                           .clipShape(UnevenRoundedRectangle(
+                              cornerRadii: .init(topLeading: 5.0,
+                                                 bottomLeading: 5.0)))
+                           .padding(.vertical, 8.0)
                            .padding(.leading, 15.0)
                            .onTapGesture {
                               if viewModel.getLoungeId() != lounge.loungeId {

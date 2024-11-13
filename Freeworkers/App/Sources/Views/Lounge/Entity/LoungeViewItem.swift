@@ -8,6 +8,7 @@ struct LoungeListViewItem : Hashable {
    let description : String?
    let coverImage : String
    let ownerId :  String
+   let createdAt : String
 }
 
 struct LoungeViewItem : Hashable {
@@ -16,6 +17,8 @@ struct LoungeViewItem : Hashable {
    let description : String?
    let coverImage : String
    let ownerId : String
+   let createdAt : String
+   let channels : [LoungeChannelViewItem]
 }
 
 struct LoungeChannelViewItem : Hashable {

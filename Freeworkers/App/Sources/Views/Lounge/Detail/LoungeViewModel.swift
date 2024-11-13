@@ -14,10 +14,10 @@ final class LoungeViewModel : ViewModelType {
    @Published var channelToggleTapped : Bool = true
    @Published var directMessageToggleTapped : Bool = false
    @Published var sideLoungeMenuTapped : Bool = false
+   @Published var findChannelTapped : Bool = false
   
    @Published var meViewItem : MeViewItem?
-   @Published var loungeViewItem : LoungeViewItem = .init(
-      loungeId: "", name: "", description: "", coverImage: "", ownerId: "")
+   @Published var loungeViewItem : LoungeViewItem?
    @Published var loungeChannelViewItem : [LoungeChannelViewItem] = []
    @Published var loungeListItem : [LoungeListViewItem] = []
    
@@ -30,6 +30,7 @@ final class LoungeViewModel : ViewModelType {
       case channelToggleTapped
       case directMessageToggleTapped
       case createChannelButtonTapped
+      case findChannelButtonTapped
       case sideLoungeMenuTapped
       case popToLounge
       
@@ -68,6 +69,8 @@ final class LoungeViewModel : ViewModelType {
          directMessageToggleTapped.toggle()
       case .createChannelButtonTapped:
          sheetConfig = .createChannelSheet
+      case .findChannelButtonTapped:
+         findChannelTapped.toggle()
       case .sideLoungeMenuTapped:
          sideLoungeMenuTapped.toggle()
       case .popToLounge:

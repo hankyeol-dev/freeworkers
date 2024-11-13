@@ -37,7 +37,6 @@ final class LoungeSettingViewModel : ViewModelType {
    }
    
    init(diContainer : DIContainer, loungeItem : LoungeViewItem) {
-      print("setting viewModel init")
       self.diContainer = diContainer
       self.loungeItem = loungeItem
    }
@@ -104,6 +103,7 @@ extension LoungeSettingViewModel {
             }
          } receiveValue: { [weak self] inviteSuccess in
             self?.sheetConfig = nil
+            self?.inviteEmail = ""
          }
          .store(in: &store)
    }
