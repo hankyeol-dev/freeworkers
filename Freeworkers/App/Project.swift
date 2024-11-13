@@ -6,6 +6,9 @@ let appInfoPlist: [String: Plist.Value] = [
        "UIColorName": "",
        "UIImageName": "",
    ],
+   "App Transport Security Settings" : [
+      "Allow Arbitrary Loads" : "YES"
+   ]
 ]
 
 let appProject = Project(name: "APP",
@@ -23,7 +26,8 @@ let appProject = Project(name: "APP",
                               dependencies: [
                                  .project(target: "FreeworkersNetworkKit", path: "../Network"),
                                  .project(target: "FreeworkersDBKit", path: "../Database"),
-                                 .project(target: "FreeworkersImageKit", path: "../Image")
+                                 .project(target: "FreeworkersImageKit", path: "../Image"),
+                                 .external(name: "MijickPopupView")
                               ])
                          ],
                          fileHeaderTemplate: .string("hankyeol-dev.")

@@ -33,11 +33,11 @@ public extension EndpointProtocol {
       do {
          var request = URLRequest(url: try asURL())
          request.httpMethod = method.rawValue
-
+         
          for (key, value) in await headers.value {
             request.addValue(value, forHTTPHeaderField: key)
          }
-
+         
          if let body {
             request.httpBody = body
          }
@@ -49,7 +49,12 @@ public extension EndpointProtocol {
    }
    
    // MARK: multipart/form-data 형식으로 요청을 보내야하는 경우, body 형식을 맵핑
-   func asMultipartFormDatas(boundary: String, files: [Data]?, content: [String: String]?) -> Data {
+   func asMultipartFormDatas(
+      boundary: String,
+      fileKey : String = "image",
+      files: [Data]?,
+      content: [String: String]?
+   ) -> Data {
       let crlf = "\r\n"
       var dataSet = Data()
       
@@ -62,10 +67,11 @@ public extension EndpointProtocol {
       }
       
       if let files {
+         print("여기 들어오지?")
          files.forEach { file in
             dataSet.appendString("--\(boundary)\(crlf)")
-            dataSet.appendString("Content-Disposition: form-data; name=\"image\"; filename=\"image.png\"\(crlf)")
-            dataSet.appendString("Content-Type: image/png\(crlf)\(crlf)")
+            dataSet.appendString("Content-Disposition: form-data; name=\"\(fileKey)\"; filename=\"file.jpeg\"\(crlf)")
+            dataSet.appendString("Content-Type: image/jpeg\(crlf)\(crlf)")
             dataSet.append(file)
             dataSet.appendString("\(crlf)")
          }
