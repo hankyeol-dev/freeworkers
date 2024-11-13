@@ -14,9 +14,10 @@ final class LoungeViewModel : ViewModelType {
    @Published var channelToggleTapped : Bool = true
    @Published var directMessageToggleTapped : Bool = false
    @Published var sideLoungeMenuTapped : Bool = false
+   @Published var findChannelTapped : Bool = false
   
-   @Published var loungeViewItem : LoungeViewItem = .init(
-      loungeId: "", name: "", description: "", coverImage: "", ownerId: "")
+   @Published var meViewItem : MeViewItem?
+   @Published var loungeViewItem : LoungeViewItem?
    @Published var loungeChannelViewItem : [LoungeChannelViewItem] = []
    @Published var loungeListItem : [LoungeListViewItem] = []
    
@@ -29,6 +30,7 @@ final class LoungeViewModel : ViewModelType {
       case channelToggleTapped
       case directMessageToggleTapped
       case createChannelButtonTapped
+      case findChannelButtonTapped
       case sideLoungeMenuTapped
       case popToLounge
       
@@ -45,6 +47,7 @@ final class LoungeViewModel : ViewModelType {
       
       // Navigate
       case pushToChannel(channelTitle : String, channelId : String)
+      case pushToProfile
    }
    
    enum SheetConfig : Int, Hashable, Identifiable {
@@ -66,6 +69,8 @@ final class LoungeViewModel : ViewModelType {
          directMessageToggleTapped.toggle()
       case .createChannelButtonTapped:
          sheetConfig = .createChannelSheet
+      case .findChannelButtonTapped:
+         findChannelTapped.toggle()
       case .sideLoungeMenuTapped:
          sideLoungeMenuTapped.toggle()
       case .popToLounge:
@@ -88,6 +93,8 @@ final class LoungeViewModel : ViewModelType {
                          channelId: channelId,
                          loungeId: loungeId)
          )
+      case .pushToProfile:
+         diContainer.navigator.push(to: .profile)
       }
    }
 }
@@ -119,6 +126,17 @@ extension LoungeViewModel {
             }
          } receiveValue: { [weak self] viewItems in
             self?.loungeChannelViewItem = viewItems
+         }
+         .store(in: &store)
+      
+      await diContainer.services.userService.getMe()
+         .receive(on: DispatchQueue.main)
+         .sink { errors in
+            if case let .failure(error) = errors {
+               print(error.errorMessage)
+            }
+         } receiveValue: { [weak self] meItem in
+            self?.meViewItem = meItem
          }
          .store(in: &store)
    }

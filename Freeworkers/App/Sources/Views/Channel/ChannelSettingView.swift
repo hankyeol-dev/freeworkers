@@ -25,7 +25,7 @@ struct ChannelSettingView : View {
                FWFlipedHeader(
                   toggleCondition: $isMemberListOpen,
                   HeaderTitle: "멤버 (\(viewItem.members.count)명)"
-               ) {}
+               ) { isMemberListOpen.toggle() }
                if isMemberListOpen {
                   FWMemberGrid(memberList: viewItem.members) { memberId in
                      print(memberId)

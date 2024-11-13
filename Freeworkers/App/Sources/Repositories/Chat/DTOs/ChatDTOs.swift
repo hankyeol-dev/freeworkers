@@ -3,6 +3,7 @@
 import Foundation
 
 struct ChatInputType {
+   let boundary : String = UUID().uuidString
    let loungeId : String
    let roomId : String // MARK: channelId, directMessage roomId
    let chatInput : CommonChatInput

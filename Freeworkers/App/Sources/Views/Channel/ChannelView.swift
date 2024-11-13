@@ -11,9 +11,9 @@ struct ChannelView : View {
          chattingView
          Spacer()
          chattingBar
+            .padding(.horizontal, 20.0)
       }
-      .padding(.horizontal, 20.0)
-      .padding(.bottom, 20.0)
+      .padding(.vertical, 20.0)
       .task {
          viewModel.send(action: .enterChannel)
       }
@@ -39,13 +39,18 @@ struct ChannelView : View {
    
    @ViewBuilder
    var chattingView : some View {
-      ScrollView {
-         ForEach(viewModel.chats, id: \.id) { chat in
-            VStack {
-               Text(chat.content)
-                  .font(.fwRegular)
-                  .frame(maxWidth: .infinity)
+      ScrollViewReader { proxy in
+         ScrollView {
+            ForEach(viewModel.chats, id: \.id) { chat in
+               LazyVStack {
+                  FWChat(chat: chat)
+                     .id(chat.id)
+               }
+               .padding(.horizontal, 15.0)
             }
+         }
+         .onChange(of: viewModel.chats.last) { _, newValue in
+            proxy.scrollTo(newValue?.id, anchor: .bottom)
          }
       }
    }
@@ -60,8 +65,9 @@ struct ChannelView : View {
                .overlay {
                   Image(systemName: "plus")
                      .resizable()
-                     .frame(width: 13.0, height: 13.0)
-                     .foregroundStyle(Color.primary)
+                     .font(.fwT1)
+                     .frame(width: 15.0, height: 15.0)
+                     .foregroundStyle(.black)
                }
          }
          
@@ -79,35 +85,16 @@ struct ChannelView : View {
                .fill(Color.bg)
                .frame(width: 30.0, height: 30.0)
                .overlay {
-                  Image(.send)
+                  Image(systemName: "arrow.up.circle.fill")
                      .resizable()
-                     .frame(width: 13.0, height: 13.0)
-                     .foregroundStyle(viewModel.chatText.isEmpty ? .gray : Color.primary)
+                     .font(.fwT1)
+                     .frame(width: 15.0, height: 15.0)
+                     .foregroundStyle(viewModel.chatText.isEmpty ? .gray : .black)
                }
          }
          .disabled(viewModel.chatText.isEmpty)
       }
       .frame(height: 40.0)
       .padding(.horizontal, 12.0)
-   }
-   
-   @ViewBuilder
-   var channelSettingView : some View {
-      VStack {
-         HStack(spacing: 20.0) {
-            Image(systemName: "xmark")
-               .resizable()
-               .frame(width: 13.0, height: 13.0)
-               .onTapGesture {
-                  viewModel.send(action: .channelSettingButtonTapped)
-               }
-            Spacer()
-         }
-         .padding()
-         .background(Color.bg)
-         .frame(height: 40.0)
-         
-         Spacer()
-      }
    }
 }

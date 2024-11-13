@@ -22,6 +22,9 @@ struct GetLoungeOutputType : Decodable {
                    name: name,
                    description: description,
                    coverImage: coverImage,
-                   ownerId: owner_id)
+                   ownerId: owner_id,
+                   createdAt: createdAt,
+                   channels : channels.map { $0.toLoungeChannelViewItem }
+      )
    }
 }

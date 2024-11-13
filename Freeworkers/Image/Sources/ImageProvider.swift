@@ -9,7 +9,7 @@ public protocol ImageCacheProviderType {
    func getImage(_ sort : String, endpoint : EndpointProtocol, refreshHandler : @escaping () async throws -> Data?) async -> UIImage?
 }
 
-public struct ImageProvider : ImageCacheProviderType {
+public actor ImageProvider : ImageCacheProviderType {
    private let filemanagerProvider : FilemangerProviderType
    private let memoryCacheProvider : MemoryCacheProviderType
    
@@ -37,7 +37,10 @@ public struct ImageProvider : ImageCacheProviderType {
       
       // 3. url session -> memory, disk 저장 -> 활용
       if let data = await requestFromServer(endpoint: endpoint, refreshHandler: refreshHandler) {
-         return UIImage(data: data)
+         if let image = UIImage(data: data) {
+            saveImage(sort, image: image, saveOnDisk: true)
+            return image
+         }
       }
          
       return nil

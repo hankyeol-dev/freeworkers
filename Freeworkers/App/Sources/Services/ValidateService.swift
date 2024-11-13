@@ -1,12 +1,14 @@
 // hankyeol-dev.
 
 import Foundation
+import Combine
 
 protocol ValidateServiceType {
    func validateEmail(_ email: String) -> Bool
    func validatePassword(_ password: String) -> Bool
    func validateRoungeName(_ name: String) -> Bool
    func validateIsLoungeOwner(_ ownerId : String) async -> Bool
+   func validateIsMe(_ userId : String) async -> AnyPublisher<Bool, Never>
 }
 
 struct ValidateService : ValidateServiceType {
@@ -31,5 +33,11 @@ struct ValidateService : ValidateServiceType {
    func validateIsLoungeOwner(_ ownerId: String) async -> Bool {
       let userId = await UserDefaultsRepository.shared.getValue(.userId)
       return ownerId == userId
+   }
+   
+   /// - Profile View에서 유저가 해당 유저인지 확인
+   func validateIsMe(_ userId : String) async -> AnyPublisher<Bool, Never> {
+      let appUserId = await UserDefaultsRepository.shared.getValue(.userId)
+      return Just(userId == appUserId).eraseToAnyPublisher()
    }
 }
