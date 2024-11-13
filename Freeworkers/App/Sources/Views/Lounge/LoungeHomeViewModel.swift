@@ -10,6 +10,7 @@ final class LoungeHomeViewModel : ViewModelType {
    @Published var sheetConfig : SheetConfig?
    @Published var toastConfig : FWToast.FWToastType?
    @Published var profileImage : String = ""
+   @Published var userId : String = ""
    @Published var userLoungeList : [LoungeListViewItem] = []
    
    enum SheetConfig : String, Identifiable {
@@ -41,7 +42,7 @@ final class LoungeHomeViewModel : ViewModelType {
       case let .pushToLounge(loungeId):
          Task { await pushToLounge(loungeId : loungeId) }
       case .pushToProfile:
-         diContainer.navigator.push(to: .profile)
+         diContainer.navigator.push(to: .profile(userId: userId))
       }
    }
 }
@@ -57,6 +58,7 @@ extension LoungeHomeViewModel {
          } receiveValue: { [weak self] item in
             if let profileImage = item.profileImage {
                self?.profileImage = profileImage
+               self?.userId = item.userId
             }
          }
          .store(in: &store)

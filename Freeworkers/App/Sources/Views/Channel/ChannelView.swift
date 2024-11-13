@@ -4,8 +4,11 @@ import SwiftUI
 import PhotosUI
 
 struct ChannelView : View {
+   @EnvironmentObject var diContainer : DIContainer
    @StateObject var viewModel : ChannelViewModel
    @FocusState private var chatTextViewFocus : Bool
+   
+   var disappearHandler : ((_ userName : String, _ userId : String, _ loungeId : String ) -> Void)?
    
    var body: some View {
       VStack {
@@ -15,11 +18,22 @@ struct ChannelView : View {
          chattingBar
             .padding(.bottom, 1.0)
       }
+      .overlay {
+         if viewModel.isDisplayPhotoViewer, let chat = viewModel.selectedChat {
+            FWImageViewer(files: chat.files,
+                          selectedImageIndex: $viewModel.photoViewerIndex) {
+               viewModel.send(action: .togglePhotoViewer)
+            }
+         }
+      }
       .task {
          viewModel.send(action: .enterChannel)
       }
       .onDisappear {
-         viewModel.send(action: .moveOutFromChannel)
+         viewModel.send(action: .disconnect)
+         if viewModel.isMoveToDM, let info = viewModel.anotherUserInfo {
+            disappearHandler?(info.username, info.userId, viewModel.getLoungeId())
+         }
       }
       .toolbar {
          ToolbarItem(placement: .topBarTrailing) {
@@ -36,11 +50,27 @@ struct ChannelView : View {
       .navigationDestination(for: NavigationDestination.self) { destination in
          RoutingView(destination: destination)
       }
-      .overlay {
-         if viewModel.isDisplayPhotoViewer, let chat = viewModel.selectedChat {
-            FWImageViewer(files: chat.files,
-                          selectedImageIndex: $viewModel.photoViewerIndex) {
-               viewModel.send(action: .togglePhotoViewer)
+      .fullScreenCover(isPresented: $viewModel.isDisplayAnotherProfile) {
+         print("dismiss")
+      } content: {
+         VStack {
+            HStack {
+               Image(systemName: "xmark")
+                  .font(.fwT2)
+                  .onTapGesture {
+                     viewModel.isDisplayAnotherProfile = false
+                  }
+               Spacer()
+            }.padding(.horizontal, 20.0)
+            
+            if let info = viewModel.anotherUserInfo {
+               ProfileView(viewModel: .init(
+                  diContainer: diContainer,
+                  userId: info.userId
+               )) { userId in
+                  viewModel.isDisplayAnotherProfile = false
+                  viewModel.send(action: .leaveChannel)
+               }
             }
          }
       }
@@ -55,6 +85,8 @@ struct ChannelView : View {
                   FWChat(chat: viewModel.chats[index]) { selectedImageIndex in
                      viewModel.send(action: .selectChatImage(chatIndex: index,
                                                              imageIndex: selectedImageIndex))
+                  } profileTapHandler: { chat in
+                     viewModel.send(action: .tapProfileImage(user: chat))
                   }
                   .id(viewModel.chats[index].id)
                }

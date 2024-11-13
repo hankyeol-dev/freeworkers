@@ -6,16 +6,25 @@ import FreeworkersDBKit
 struct FWChat : View {
    private let chat : Chat
    private var imageTapHandler : (Int) -> Void
+   private var profileTapHandler : (Chat) -> Void
 
-   init(chat: Chat, imageTapHandler : @escaping (Int) -> Void) {
+   init(chat: Chat,
+        imageTapHandler : @escaping (Int) -> Void,
+        profileTapHandler : @escaping (Chat) -> Void
+   ) {
       self.chat = chat
       self.imageTapHandler = imageTapHandler
+      self.profileTapHandler = profileTapHandler
    }
    
    var body: some View {
       HStack {
          if !chat.me {
             profileImage
+               .onTapGesture {
+                  print(chat.userId)
+                  profileTapHandler(chat)
+               }
          }
          if chat.me {
             Spacer()
