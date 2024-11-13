@@ -7,4 +7,11 @@ struct UserCommonOutputType : Decodable, Hashable {
    let email : String
    let nickname : String
    let profileImage : String?
+   
+   var toAnotherViewItem : AnotherViewItem {
+      return .init(userId: user_id,
+                   email: email,
+                   nickname: nickname,
+                   profileImage: profileImage)
+   }
 }

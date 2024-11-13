@@ -5,11 +5,14 @@ import FreeworkersNetworkKit
 
 enum UserRouter : EndpointProtocol {
    case me
+   case another(userId : String)
    case putNickname(inputType : PutNicknameDTO)
    case putPhone(inputType : PutPhoneDTO)
    
    var path: String {
       switch self {
+      case let .another(userId):
+         return "/users/\(userId)"
       default:
          return "/users/me"
       }
@@ -17,7 +20,7 @@ enum UserRouter : EndpointProtocol {
    
    var method: NetworkMethod {
       switch self {
-      case .me:
+      case .me, .another:
          return .GET
       case .putNickname, .putPhone:
          return .PUT

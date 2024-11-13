@@ -5,6 +5,7 @@ import FreeworkersNetworkKit
 
 protocol UserRepositoryType : CoreRepositoryType {
    func getMe() async -> Result<MeViewItem, RepositoryErrors>
+   func getAnother(_ userId : String) async -> Result<UserCommonOutputType, RepositoryErrors>
    
    func putNickname(nickname : String) async -> Result<Bool, RepositoryErrors>
    func putPhone(phone : String) async -> Result<Bool, RepositoryErrors>
@@ -18,6 +19,26 @@ struct UserRepository : UserRepositoryType {
       }
       
       if case let .failure(errors) = results {
+         switch errors {
+         case .error(.E03):
+            return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
+         default:
+            return .failure(.error(message: errorText.ERROR_UNKWON))
+         }
+      }
+      
+      return .failure(.error(message: errorText.ERROR_UNKWON))
+   }
+   
+   func getAnother(_ userId : String) async -> Result<UserCommonOutputType, RepositoryErrors> {
+      let result = await request(router: UserRouter.another(userId: userId),
+                                 of: UserCommonOutputType.self)
+      
+      if case let .success(user) = result {
+         return .success(user)
+      }
+      
+      if case let .failure(errors) = result {
          switch errors {
          case .error(.E03):
             return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
