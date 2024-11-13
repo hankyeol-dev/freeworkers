@@ -4,118 +4,159 @@ import SwiftUI
 
 struct ProfileView : View {
    @StateObject var viewModel : ProfileViewModel
+   var dmHandler : ((String) -> Void)? = nil
    
    var body: some View {
       VStack {
          if let profileViewItem = viewModel.profileViewItem {
             ScrollView(.vertical) {
-               if viewModel.isMe {
-                  Group {
-                     ZStack(alignment: .center) {
-                        RoundedRectangle(cornerRadius: 5.0)
-                           .stroke(lineWidth: 0.8)
-                           .foregroundStyle(.black)
-                           .frame(width: 55.0, height: 55.0)
-                        FWImage(imagePath: profileViewItem.profileImage ?? "/", placeholderImageName: "person.circle")
-                           .frame(width: 50.0, height: 50.0)
-                           .clipShape(RoundedRectangle(cornerRadius: 5.0))
-                        FWCameraButton()
-                           .padding(.leading, 50.0)
-                           .padding(.top, 45.0)
-                           .onTapGesture {
-                              
-                           }
-                     }
-                     .frame(maxWidth: .infinity, alignment: .center)
-                     .padding(.vertical, 20.0)
-                     
-                     ProfileBannerView(title: "내 코인") {
-                        Group {
-                           Spacer()
-                           Text(String(profileViewItem.sesacCoin))
-                              .font(.fwT2)
-                              .foregroundStyle(Color.primary)
-                           Text("개")
-                              .font(.fwT2)
-                              .foregroundStyle(.gray.opacity(1.5))
-                              .padding(.leading, -5.0)
-                           Spacer.width(10.0)
-                           Text("충전하기")
-                              .font(.fwRegular)
-                              .foregroundStyle(.gray)
-                           Spacer.width(10.0)
-                           Image(systemName: "chevron.right")
-                              .resizable()
-                              .frame(width: 5.0, height: 10.0)
+               Group {
+                  ZStack(alignment: .center) {
+                     RoundedRectangle(cornerRadius: 5.0)
+                        .stroke(lineWidth: 0.8)
+                        .foregroundStyle(.black)
+                        .frame(width: 55.0, height: 55.0)
+                     FWImage(imagePath: profileViewItem.profileImage ?? "/", placeholderImageName: "person.circle")
+                        .frame(width: 50.0, height: 50.0)
+                        .clipShape(RoundedRectangle(cornerRadius: 5.0))
+                     FWCameraButton()
+                        .padding(.leading, 50.0)
+                        .padding(.top, 45.0)
+                        .onTapGesture {
+                           
                         }
-                     } tapAction: {
-                        viewModel.send(action: .tapBanner(.fillCoin(coin: profileViewItem.sesacCoin)))
-                     }
-                     
-                     ProfileBannerView(title: "닉네임") {
-                        Group {
-                           Spacer()
-                           Text(profileViewItem.nickname)
-                              .font(.fwRegular)
-                              .foregroundStyle(.gray)
-                           Spacer.width(10.0)
-                           Image(systemName: "chevron.right")
-                              .resizable()
-                              .frame(width: 5.0, height: 10.0)
-                        }
-                     } tapAction: {
-                        viewModel.send(action: .tapBanner(.patchNickname(nickname: profileViewItem.nickname)))
-                     }.padding(.vertical, -5.0)
-                     
-                     ProfileBannerView(title: "전화번호") {
-                        Group {
-                           Spacer()
-                           Text(profileViewItem.phone ?? "미등록 상태")
-                              .font(.fwRegular)
-                              .foregroundStyle(.gray)
-                           Spacer.width(10.0)
-                           Image(systemName: "chevron.right")
-                              .resizable()
-                              .frame(width: 5.0, height: 10.0)
-                        }
-                     } tapAction: {
-                        viewModel.send(action: .tapBanner(.patchPhone(phone: profileViewItem.phone ?? "")))
-                     }
-                     
-                     Spacer.height(30.0)
-                     
-                     ProfileBannerView(title: "이메일") {
-                        Group {
-                           Spacer()
-                           Text(profileViewItem.email)
-                              .font(.fwRegular)
-                              .foregroundStyle(.gray)
-                        }
-                     } tapAction: { }
-                     
-                     ProfileBannerView(title: "연결된 소셜 계정") {
-                        Group {
-                           Spacer()
-                           Text(profileViewItem.provider ?? "없음")
-                              .font(.fwRegular)
-                              .foregroundStyle(.gray)
-                        }
-                     } tapAction: { }.padding(.vertical, -5.0)
-                     
-                     ProfileBannerView(title: "로그아웃") { Text("") } tapAction: {
-                        
-                     }
-                     
-                     Spacer()
                   }
-               } else {
-                  Text("남의 뷰")
+                  .frame(maxWidth: .infinity, alignment: .center)
+                  .padding(.vertical, 20.0)
+                  
+                  ProfileBannerView(title: "내 코인") {
+                     Group {
+                        Spacer()
+                        Text(String(profileViewItem.sesacCoin))
+                           .font(.fwT2)
+                           .foregroundStyle(Color.primary)
+                        Text("개")
+                           .font(.fwT2)
+                           .foregroundStyle(.gray.opacity(1.5))
+                           .padding(.leading, -5.0)
+                        Spacer.width(10.0)
+                        Text("충전하기")
+                           .font(.fwRegular)
+                           .foregroundStyle(.gray)
+                        Spacer.width(10.0)
+                        Image(systemName: "chevron.right")
+                           .resizable()
+                           .frame(width: 5.0, height: 10.0)
+                     }
+                  } tapAction: {
+                     viewModel.send(action: .tapBanner(.fillCoin(coin: profileViewItem.sesacCoin)))
+                  }
+                  
+                  ProfileBannerView(title: "닉네임") {
+                     Group {
+                        Spacer()
+                        Text(profileViewItem.nickname)
+                           .font(.fwRegular)
+                           .foregroundStyle(.gray)
+                        Spacer.width(10.0)
+                        Image(systemName: "chevron.right")
+                           .resizable()
+                           .frame(width: 5.0, height: 10.0)
+                     }
+                  } tapAction: {
+                     viewModel.send(action: .tapBanner(.patchNickname(nickname: profileViewItem.nickname)))
+                  }.padding(.vertical, -5.0)
+                  
+                  ProfileBannerView(title: "전화번호") {
+                     Group {
+                        Spacer()
+                        Text(profileViewItem.phone ?? "미등록 상태")
+                           .font(.fwRegular)
+                           .foregroundStyle(.gray)
+                        Spacer.width(10.0)
+                        Image(systemName: "chevron.right")
+                           .resizable()
+                           .frame(width: 5.0, height: 10.0)
+                     }
+                  } tapAction: {
+                     viewModel.send(action: .tapBanner(.patchPhone(phone: profileViewItem.phone ?? "")))
+                  }
+                  
+                  Spacer.height(30.0)
+                  
+                  ProfileBannerView(title: "이메일") {
+                     Group {
+                        Spacer()
+                        Text(profileViewItem.email)
+                           .font(.fwRegular)
+                           .foregroundStyle(.gray)
+                     }
+                  } tapAction: { }
+                  
+                  ProfileBannerView(title: "연결된 소셜 계정") {
+                     Group {
+                        Spacer()
+                        Text(profileViewItem.provider ?? "없음")
+                           .font(.fwRegular)
+                           .foregroundStyle(.gray)
+                     }
+                  } tapAction: { }.padding(.vertical, -5.0)
+                  
+                  ProfileBannerView(title: "로그아웃") { Text("") } tapAction: {
+                     
+                  }
+                  
+                  Spacer()
                }
             }
             .font(.fwT2)
             .frame(maxWidth: .infinity, alignment: .topLeading)
-         } else {
-            EmptyView()
+         }
+         
+         if let profileItem = viewModel.anotherProfileViewItem {
+            Group {
+               Spacer.height(20.0)
+               
+               if let profileImage = profileItem.profileImage {
+                  FWImage(imagePath: profileImage)
+                     .frame(width: 232, height: 232)
+                     .clipShape(RoundedRectangle(cornerRadius: 8.0))
+               } else {
+                  RoundedRectangle(cornerRadius : 8.0)
+                     .frame(width: 232, height: 232)
+                     .background(Color.primary)
+                     .overlay {
+                        Image(systemName: profileItem.toDefaultImage)
+                           .resizable()
+                           .frame(width: 50.0, height: 50.0)
+                           .foregroundStyle(.white)
+                     }
+                     .clipShape(RoundedRectangle(cornerRadius: 8.0))
+               }
+               
+               Spacer.height(20.0)
+               
+               ProfileBannerView(title: "닉네임", background: Color.bg) {
+                  Text(profileItem.nickname)
+                     .font(.fwT2)
+                     .foregroundStyle(.gray.opacity(1.5))
+               } tapAction: {}
+               ProfileBannerView(title: "이메일", background: Color.bg) {
+                  Text(profileItem.email)
+                     .font(.fwT2)
+                     .foregroundStyle(.gray.opacity(1.5))
+               } tapAction: {}
+
+               Spacer.height(20.0)
+               
+               FWRoundedButton(title: "DM 보내기", width: 360.0, height: 50.0) {
+                  // TODO: pop -> DM 방으로 보내기
+                  dmHandler?(profileItem.userId)
+               }
+               
+               Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
          }
       }
       .padding(.horizontal, 20.0)
