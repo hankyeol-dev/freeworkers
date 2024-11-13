@@ -28,13 +28,13 @@ fileprivate struct FMMemberGridItem : View {
    var body: some View {
       VStack(alignment: .center, spacing: 13.0) {
          FWImage(imagePath: member.profileImage ?? "/", placeholderImageName: "person.circle")
-            .frame(width: 32.0, height: 32.0)
+            .frame(width: 36.0, height: 36.0)
             .clipShape(RoundedRectangle(cornerRadius: 8.0))
          Text(member.nickname)
             .font(.fwRegular)
-            .lineLimit(1)
+            .lineLimit(2)
       }
-      .frame(width: 40.0, height: 40.0)
+//      .frame(width: 40.0, height: 40.0)
       .padding(5.0)
    }
 }

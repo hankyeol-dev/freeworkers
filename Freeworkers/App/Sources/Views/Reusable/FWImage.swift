@@ -13,7 +13,7 @@ struct FWImage : View {
    let placeholderImageName : String
    
    private var placeholderImage : UIImage {
-      UIImage(named: placeholderImageName) ?? UIImage(resource: .home)
+      UIImage(named: placeholderImageName) ?? UIImage(systemName: "person.circle")!
    }
    
    init(imagePath: String, placeholderImageName: String? = nil) {

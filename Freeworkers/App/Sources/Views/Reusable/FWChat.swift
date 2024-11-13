@@ -65,7 +65,7 @@ struct FWChat : View {
          
          if !chat.content.isEmpty {
             Text(chat.content)
-               .font(.fwT2)
+               .font(.fwRegular)
                .padding(.horizontal, 12.0)
                .padding(.vertical, 10.0)
                .foregroundColor(chat.me ? .white : .black)
@@ -74,12 +74,11 @@ struct FWChat : View {
          }
          
          if !chat.files.isEmpty {
-            
+            chatImageGrid
          }
          
          Spacer()
       }
-//      .frame(maxWidth: 250.0, alignment: chat.me ? .trailing : .leading)
       .padding(chat.me ? .trailing : .leading, 5.0)
    }
    
@@ -91,6 +90,58 @@ struct FWChat : View {
             .font(.system(size: 10.0, weight: .thin))
             .foregroundStyle(.black.opacity(0.8))
          Spacer.height(15.0)
+      }
+   }
+   
+   @ViewBuilder
+   var chatImageGrid : some View {
+      let maxWidth : CGFloat = 220
+      let counts : Int = chat.files.count
+      let maxCounts : Int = counts >= 3 ? 3 : counts
+      let columns = Array(repeating: GridItem(.flexible(minimum: 70.0, maximum: 160.0),
+                                              spacing: 10.0),
+                          count: maxCounts)
+      
+      if counts == 1 {
+         FWImage(imagePath: chat.files[0])
+            .frame(width: 130.0, height: 130.0)
+            .clipShape(RoundedRectangle(cornerRadius: 10.0))
+      } else {
+         HStack {
+            if chat.me {
+               Spacer()
+            }
+            LazyVGrid(columns: columns, alignment: .center) {
+               ForEach(chat.files.indices, id:\.self) { index in
+                  ZStack {
+                     let width : CGFloat = counts == 0
+                     ? 0
+                     : counts == 1
+                     ? 150.0 : (maxWidth) / CGFloat(maxCounts)
+                     
+                     if index < 3 {
+                        FWImage(imagePath: chat.files[index])
+                           .frame(width: width, height: width)
+                           .clipShape(RoundedRectangle(cornerRadius: 10.0))
+                     }
+                     if counts > 3 && index == 2 {
+                        RoundedRectangle(cornerRadius: 10.0)
+                           .fill(.black.opacity(0.5))
+                           .frame(width: width, height: width)
+                           .overlay {
+                              Text("+ \(counts - 3)")
+                                 .font(.fwT1)
+                                 .foregroundStyle(.white)
+                           }
+                     }
+                  }
+               }
+            }
+            if !chat.me {
+               Spacer()
+            }
+         }
+         .frame(width: maxWidth + 20)
       }
    }
 }
