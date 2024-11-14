@@ -47,7 +47,7 @@ final class LoungeViewModel : ViewModelType {
       
       // Navigate
       case pushToChannel(channelTitle : String, channelId : String)
-      case pushToProfile
+      case pushToProfile(userId : String)
    }
    
    enum SheetConfig : Int, Hashable, Identifiable {
@@ -93,8 +93,8 @@ final class LoungeViewModel : ViewModelType {
                          channelId: channelId,
                          loungeId: loungeId)
          )
-      case .pushToProfile:
-         diContainer.navigator.push(to: .profile)
+      case let .pushToProfile(userId):
+         diContainer.navigator.push(to: .profile(userId: userId))
       }
    }
 }

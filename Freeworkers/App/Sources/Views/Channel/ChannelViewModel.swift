@@ -11,6 +11,7 @@ final class ChannelViewModel : ViewModelType {
    private let diContainer : DIContainer
    private let channelId : String
    private let loungeId : String
+   var isMoveToDM : Bool = false
    
    var store: Set<AnyCancellable> = .init()
    
@@ -25,6 +26,8 @@ final class ChannelViewModel : ViewModelType {
    
    @Published var isDisplayChannelSetting : Bool = false
    @Published var isDisplayPhotoViewer : Bool = false
+   @Published var isDisplayAnotherProfile : Bool = false
+   @Published var anotherUserInfo : Chat?
    
    init(diContainer : DIContainer, channelId : String, lougneId : String) {
       self.diContainer = diContainer
@@ -37,20 +40,25 @@ final class ChannelViewModel : ViewModelType {
       case sendChannelChat
       
       // Touch
-      case moveOutFromChannel
+      case disconnect
+      case leaveChannel
       case channelSettingButtonTapped
       case deSelectPhoto(data : UIImage)
       case selectChatImage(chatIndex : Int, imageIndex : Int)
       case togglePhotoViewer
+      case tapProfileImage(user : Chat)
    }
    
    func send(action: Action) {
       switch action {
       case .enterChannel:
          Task { await enterChannel() }
+      case .leaveChannel:
+         isMoveToDM = true
+         diContainer.navigator.pop()
       case .sendChannelChat:
          Task { await sendChannelChat() }
-      case .moveOutFromChannel:
+      case .disconnect:
          Task { await disconnectSocket() }
       case .channelSettingButtonTapped:
          pushToSettingView()
@@ -62,6 +70,9 @@ final class ChannelViewModel : ViewModelType {
          send(action: .togglePhotoViewer)
       case .togglePhotoViewer:
          isDisplayPhotoViewer.toggle()
+      case let .tapProfileImage(user):
+         anotherUserInfo = user
+         isDisplayAnotherProfile = true
       }
    }
 }
@@ -70,6 +81,10 @@ final class ChannelViewModel : ViewModelType {
 extension ChannelViewModel {
    func getChannelId() -> String {
       return channelId
+   }
+   
+   func getLoungeId() -> String {
+      return loungeId
    }
    
    private func enterChannel() async {

@@ -5,10 +5,13 @@ import Combine
 
 final class ProfileViewModel : ViewModelType {
    private let diContainer : DIContainer
+   private let userId : String
+   
    var store: Set<AnyCancellable> = .init()
    
    @Published var toastConfig : FWToast.FWToastType?
    @Published var profileViewItem : MeViewItem?
+   @Published var anotherProfileViewItem : AnotherViewItem?
    @Published var isMe : Bool = false
    
    enum ProfileDestination : Hashable {
@@ -17,13 +20,13 @@ final class ProfileViewModel : ViewModelType {
       case patchPhone
    }
    
-   init(diContainer : DIContainer) {
+   init(diContainer : DIContainer, userId : String) {
       self.diContainer = diContainer
+      self.userId = userId
    }
    
    enum Action {
       case didLoad
-      case validIsMe(userId : String)
       case tapBanner(_ destination : NavigationDestination)
       case dismiss
    }
@@ -32,8 +35,6 @@ final class ProfileViewModel : ViewModelType {
       switch action {
       case .didLoad:
          Task { await fetchProfile() }
-      case let .validIsMe(userId):
-         Task { await validIsMe(userId) }
       case let .tapBanner(destination):
          diContainer.navigator.push(to: destination)
       case .dismiss:
@@ -45,6 +46,22 @@ final class ProfileViewModel : ViewModelType {
 extension ProfileViewModel {
    @MainActor
    private func fetchProfile() async {
+      await diContainer.services.validateService.validateIsMe(userId)
+         .receive(on: DispatchQueue.main)
+         .sink { [weak self] isMe in
+            self?.isMe = isMe
+            if isMe {
+               Task { [weak self] in await self?.fetchMe() }
+            } else {
+               // 다른 유저 프로필 조회
+               Task { [weak self] in await self?.fetchAnother() }
+            }
+         }
+         .store(in: &store)
+   }
+   
+   @MainActor
+   private func fetchMe() async {
       await diContainer.services.userService.getMe()
          .receive(on: DispatchQueue.main)
          .sink { [weak self] errors in
@@ -53,15 +70,21 @@ extension ProfileViewModel {
             }
          } receiveValue: { [weak self] viewItem in
             self?.profileViewItem = viewItem
-            self?.send(action: .validIsMe(userId: viewItem.userId))
          }
          .store(in: &store)
    }
    
    @MainActor
-   private func validIsMe(_ userId : String) async {
-      await diContainer.services.validateService.validateIsMe(userId)
-         .sink { [weak self] isMe in self?.isMe = isMe}
+   private func fetchAnother() async {
+      await diContainer.services.userService.getAnother(userId)
+         .receive(on: DispatchQueue.main)
+         .sink { [weak self] errors in
+            if case let .failure(error) = errors {
+               self?.toastConfig = .error(message: error.errorMessage, duration: 1.0)
+            }
+         } receiveValue: { [weak self] viewItem in
+            self?.anotherProfileViewItem = viewItem
+         }
          .store(in: &store)
    }
 }

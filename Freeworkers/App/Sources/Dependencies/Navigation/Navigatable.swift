@@ -9,10 +9,12 @@ enum NavigationDestination : Hashable {
    case channel(channelTitle: String, channelId : String, loungeId : String)
    case channelSetting(channelId : String, loungeId : String)
    
-   case profile
+   case profile(userId : String)
    case fillCoin(coin : Int)
    case patchNickname(nickname : String)
    case patchPhone(phone : String)
+   
+   case dm(username : String, userId : String, loungeId : String)
 }
 
 // Router, Coordinator Pattern

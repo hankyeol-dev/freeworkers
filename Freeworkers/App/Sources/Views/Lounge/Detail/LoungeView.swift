@@ -164,7 +164,7 @@ fileprivate struct LoungeMainView : View {
             Text(loungeViewItem.name)
                .foregroundStyle(.black)
          }
-
+         
          Spacer()
          if let meViewItem = viewModel.meViewItem,
             let profileImage = meViewItem.profileImage {
@@ -172,7 +172,7 @@ fileprivate struct LoungeMainView : View {
                .frame(width: 25.0, height: 25.0)
                .clipShape(Circle())
                .onTapGesture {
-                  viewModel.send(action: .pushToProfile)
+                  viewModel.send(action: .pushToProfile(userId: meViewItem.userId))
                }
          }
       }
@@ -260,7 +260,7 @@ fileprivate struct LoungeSideMenu : View {
                                     .font(.fwT2)
                                     .foregroundStyle(.black)
                                     .lineLimit(1)
-                                 Text(lounge.createdAt)
+                                 Text(lounge.createdAt.toISO860().toChatDate() + "오픈")
                                     .font(.fwRegular)
                                     .foregroundStyle(.gray.opacity(1.5))
                               }
