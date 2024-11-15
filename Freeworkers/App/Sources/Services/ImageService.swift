@@ -17,6 +17,7 @@ struct ImageService : ImageServiceType {
 
 extension ImageService {
    func getImage(_ imagePath: String) async -> UIImage? {
+      if imagePath == "/" { return nil }
       return await imageRepository.getImage(imagePath)
    }
 }

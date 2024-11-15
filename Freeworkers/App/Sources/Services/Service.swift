@@ -9,6 +9,7 @@ protocol ServiceType {
    var workspaceService : WorkspaceServiceType { get set }
    var channelService : ChannelServiceType { get set }
    var imageService : ImageServiceType { get set }
+   var dmService : DMServiceType { get set }
 }
 
 final class Services: ServiceType {
@@ -18,6 +19,7 @@ final class Services: ServiceType {
    var workspaceService: WorkspaceServiceType
    var channelService: ChannelServiceType
    var imageService: ImageServiceType
+   var dmService: DMServiceType
    
    init() {
       self.authService = AuthService(authRepository: AuthRepository())
@@ -26,5 +28,6 @@ final class Services: ServiceType {
       self.workspaceService = WorkspaceService(workspaceRepository: WorkspaceRepository())
       self.channelService = ChannelService(channelRepository: ChannelRepository())
       self.imageService = ImageService(imageRepository: ImageRepository())
+      self.dmService = DMService(dmRepository: DMRepository(), channelRepository: ChannelRepository())
    }
 }

@@ -29,10 +29,12 @@ extension CoreRepositoryType {
 //            await logout()
 //            return .failure(.error(message: .E00))
          }
-      } catch NetworkErrors.error(message: .E06) {
-         await dummyLogin()
-         return await request(router: router, of: of)
-      } catch {
+      } 
+//      catch NetworkErrors.error(message: .E06) {
+//         await dummyLogin()
+//         return await request(router: router, of: of)
+//      } 
+      catch {
          return .failure(error as? NetworkErrors ?? NetworkErrors.error(message: .E00))
       }
    }

@@ -25,3 +25,8 @@ struct LoungeChannelViewItem : Hashable {
    let channelId : String
    let channelName : String
 }
+
+struct LoungeDMViewItem : Hashable {
+   let roomId : String
+   let opponent : UserCommonOutputType
+}

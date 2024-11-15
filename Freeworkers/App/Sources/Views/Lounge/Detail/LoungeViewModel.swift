@@ -2,6 +2,7 @@
 
 import Foundation
 import Combine
+import FreeworkersDBKit
 
 final class LoungeViewModel : ViewModelType {
    private let diContainer : DIContainer
@@ -15,10 +16,11 @@ final class LoungeViewModel : ViewModelType {
    @Published var directMessageToggleTapped : Bool = false
    @Published var sideLoungeMenuTapped : Bool = false
    @Published var findChannelTapped : Bool = false
-  
+   
    @Published var meViewItem : MeViewItem?
    @Published var loungeViewItem : LoungeViewItem?
    @Published var loungeChannelViewItem : [LoungeChannelViewItem] = []
+   @Published var loungeChannelChatCounts : [Int] = []
    @Published var loungeListItem : [LoungeListViewItem] = []
    
    @Published var canCreateChannel : Bool = false
@@ -61,6 +63,8 @@ final class LoungeViewModel : ViewModelType {
       self.loungeId = loungeId
    }
    
+   deinit { print("loungeViewModel deinit") }
+   
    func send(action: Action) {
       switch action {
       case .channelToggleTapped:
@@ -77,7 +81,7 @@ final class LoungeViewModel : ViewModelType {
          diContainer.navigator.pop()
          
       case .fetchLounge:
-         Task { await fetchLounge() }
+         Task { await didLoad() }
       case .fetchLounges:
          Task { await fetchLounges() }
       case let .switchLounge(loungeId):
@@ -99,36 +103,22 @@ final class LoungeViewModel : ViewModelType {
    }
 }
 
+// MARK: Fetch Lounge
 extension LoungeViewModel {
    func getLoungeId() -> String {
       return loungeId
    }
    
    @MainActor
-   private func fetchLounge() async {
+   private func didLoad() async {
       diContainer.services.authService.setLatestEnteredChannel(loungeId: loungeId)
-      await diContainer.services.workspaceService.getLounge(input: .init(loungeId: loungeId))
-         .receive(on: DispatchQueue.main)
-         .sink { errors in
-            if case let .failure(error) = errors {
-               print(error.errorMessage)
-            }
-         } receiveValue: { [weak self] viewItem in
-            self?.loungeViewItem = viewItem
-         }
-         .store(in: &store)
       
-      await diContainer.services.workspaceService.getLoungeMyChannel(loungeId: loungeId)
-         .receive(on: DispatchQueue.main)
-         .sink { errors in
-            if case let .failure(error) = errors {
-               print(error.errorMessage)
-            }
-         } receiveValue: { [weak self] viewItems in
-            self?.loungeChannelViewItem = viewItems
-         }
-         .store(in: &store)
-      
+      await fetchMe()
+      await fetchLounge()
+      await fetchMyChannels()
+   }
+   
+   private func fetchMe() async {
       await diContainer.services.userService.getMe()
          .receive(on: DispatchQueue.main)
          .sink { errors in
@@ -141,6 +131,68 @@ extension LoungeViewModel {
          .store(in: &store)
    }
    
+   private func fetchLounge() async {
+      await diContainer.services.workspaceService.getLounge(input: .init(loungeId: loungeId))
+         .receive(on: DispatchQueue.main)
+         .sink { errors in
+            if case let .failure(error) = errors {
+               print(error.errorMessage)
+            }
+         } receiveValue: { [weak self] viewItem in
+            self?.loungeViewItem = viewItem
+         }
+         .store(in: &store)
+   }
+   
+   private func fetchMyChannels() async {
+      await diContainer.services.workspaceService.getLoungeMyChannel(loungeId: loungeId)
+         .receive(on: DispatchQueue.main)
+         .sink { errors in
+            if case let .failure(error) = errors {
+               print(error.errorMessage)
+            }
+         } receiveValue: { [weak self] viewItems in
+            self?.loungeChannelViewItem = viewItems
+            Task { [weak self] in
+               await self?.fetchMyChannelsChatsCount(viewItems.map({ $0.channelId }))
+            }
+         }
+         .store(in: &store)
+   }
+   
+   @MainActor
+   private func fetchMyChannelsChatsCount(_ channelIds : [String]) async {
+      await withTaskGroup(of: Int.self) { [weak self] taskGroup in
+         for id in channelIds {
+            taskGroup.addTask { [weak self] in
+               guard let self else { return 0 }
+               return await fetchChannelLastCreatedAt(id)
+            }
+         }
+         
+         var counts : [Int] = []
+         self?.loungeChannelChatCounts = []
+         for await task in taskGroup {
+            counts.append(task)
+         }
+         self?.loungeChannelChatCounts = counts
+      }
+   }
+   
+   private func fetchChannelLastCreatedAt(_ channelId : String) async -> Int {
+      let chat = await diContainer.services.channelService.getchannelLastSaved(channelId: channelId)
+      if let chat {
+         return await diContainer.services.channelService.getChannelUnreads(
+            input: .init(loungeId: loungeId, roomId: chat.roomId, createdAt: chat.createdAt)
+         )
+      } else {
+         return 0
+      }
+   }
+}
+
+// MARK: Side Menu
+extension LoungeViewModel {
    @MainActor
    private func fetchLounges() async {
       await diContainer.services.workspaceService.getLounges()
@@ -162,8 +214,10 @@ extension LoungeViewModel {
       send(action: .sideLoungeMenuTapped)
       send(action: .fetchLounge)
    }
-   
-   
+}
+
+// MARK: Create Channel
+extension LoungeViewModel {
    private func validCreateChannelName(_ name : String) {
       canCreateChannel = diContainer.services.validateService.validateRoungeName(name)
    }
@@ -181,9 +235,9 @@ extension LoungeViewModel {
                print(error.errorMessage)
             }
          } receiveValue: { [weak self] output in
-            self?.loungeChannelViewItem.append(output.toLoungeChannelViewItem)
+            self?.loungeChannelViewItem.insert(output.toLoungeChannelViewItem, at: 0)
             self?.sheetConfig = nil
-            self?.send(action: .channelToggleTapped)
+            // self?.send(action: .channelToggleTapped)
          }
          .store(in: &store)
    }
