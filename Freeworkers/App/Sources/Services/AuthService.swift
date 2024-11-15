@@ -15,12 +15,6 @@ protocol AuthServiceType {
 }
 
 final class AuthService : AuthServiceType {
-   // TODO: 구현 필요한 사항
-   /// 1. 회원가입  =>  O
-   /// 2. 로그인 - 이메일 => O
-   /// 3. 로그인 - 애플 => O
-   /// 4. 로그아웃 => O
-   /// 5. 이메일 중복 확인
    private let authRepository : AuthRepositoryType
    
    init(authRepository: AuthRepositoryType) {
