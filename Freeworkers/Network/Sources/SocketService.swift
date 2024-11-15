@@ -17,7 +17,6 @@ extension SocketService {
    /// dm -> dm roomId
    public func connect(_ socketEndpoint : SocketEndpointProtocol, dataHandler : @escaping(Data) -> Void) {
       guard let url = URL(string: socketEndpoint.baseURL) else { return }
-      print("socketBaseURL: ", url)
       socketManager = .init(socketURL: url, config: [.compress])
       socket = socketManager?.socket(forNamespace: socketEndpoint.connectionType.toNameSpace)
       

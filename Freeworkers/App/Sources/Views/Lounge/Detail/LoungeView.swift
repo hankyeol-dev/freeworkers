@@ -31,7 +31,9 @@ struct LoungeView : View {
             case .home:
                LoungeMainView(viewModel: viewModel)
             case .directMessage:
-               LoungeDMListView()
+               LoungeDMListView(
+                  viewModel: .init(diContainer: diContainer, loungeId: viewModel.getLoungeId())
+               )
             case .search:
                LoungeSearchView()
             case .setting:

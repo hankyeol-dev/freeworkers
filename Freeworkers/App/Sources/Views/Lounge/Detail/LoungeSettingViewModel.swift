@@ -75,7 +75,7 @@ extension LoungeSettingViewModel {
    @MainActor
    private func fetchLoungeMember() async {
       let input: GetLoungeInputType = .init(loungeId: loungeItem.loungeId)
-      await diContainer.services.workspaceService.getLoungeMembers(input: input)
+      await diContainer.services.workspaceService.getLoungeMembers(input: input, exceptMe: false)
          .receive(on: DispatchQueue.main)
          .sink { [weak self] errors in
             if case let .failure(error) = errors {

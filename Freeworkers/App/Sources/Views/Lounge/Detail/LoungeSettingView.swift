@@ -8,7 +8,7 @@ struct LoungeSettingView : View {
    var body: some View {
       VStack {
          HStack {
-            Text("라운지 설정")
+            Text(workspaceTitle.LOUNGE_SETTING)
                .foregroundStyle(.black)
                .frame(maxWidth: .infinity, alignment: .center)
          }
@@ -18,18 +18,16 @@ struct LoungeSettingView : View {
          
          ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 20.0) {
-               LoungeSettingRow(title: "라운지에 초대하기") {
+               LoungeSettingRow(title: buttonTitle.INVITE_LOUNGE) {
                   viewModel.send(action: .tapMenu(type: .invite))
                }
                
                if viewModel.isOwned {
-                  LoungeSettingRow(title: "라운지 편집") { print("") }
-                  LoungeSettingRow(title: "라운지 관리자 변경") { print("") }
-                  LoungeSettingRow(title: "라운지 삭제", color: .error) { print("") }
+                  LoungeSettingRow(title: buttonTitle.EDIT_LOUNGE) { print("") }
+                  LoungeSettingRow(title: buttonTitle.CHANGE_LOUNGE_OWNER) { print("") }
+                  LoungeSettingRow(title: buttonTitle.DELETE_LOUNGE, color: .error) { print("") }
                } else {
-                  LoungeSettingRow(title: "라운지에서 나가기", color: .error) {
-                     print("")
-                  }
+                  LoungeSettingRow(title: buttonTitle.LEAVE_LOUNGE, color: .error) { print("") }
                }
             }
             .padding(.horizontal, 20.0)
