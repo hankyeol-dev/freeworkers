@@ -9,6 +9,8 @@ protocol ChannelServiceType {
    // GET
    func getChannelInfo(input : CommonChannelInputType) async -> AnyPublisher<ChannelSettingViewItem, ServiceErrors>
    func getChannelData(channelId : String) async -> AnyPublisher<[Chat], ServiceErrors>
+   func getchannelLastSaved(channelId : String) async -> Chat?
+   func getChannelUnreads(input : GetChatsInputType) async -> Int
    func getChannelChats(input : GetChatsInputType) async -> AnyPublisher<[ChannelChatOutputType], ServiceErrors>
    
    // POST
@@ -61,6 +63,21 @@ extension ChannelService {
             promise(.failure(.error(message: error.errorMessage)))
          }
       }.eraseToAnyPublisher()
+   }
+   
+   func getchannelLastSaved(channelId: String) async -> Chat? {
+      let result = await channelRepository.getChannelData(channelId: channelId)
+      switch result {
+      case let .success(chats):
+         let sort = SortDescriptor(\Chat.createdAt, order: .forward)
+         return chats.sorted(using: sort).last
+      case .failure:
+         return nil
+      }
+   }
+   
+   func getChannelUnreads(input : GetChatsInputType) async -> Int {
+      return await channelRepository.getChannelChatUnreads(input: input)
    }
    
    func getChannelChats(input: GetChatsInputType) async -> AnyPublisher<[ChannelChatOutputType], ServiceErrors> {

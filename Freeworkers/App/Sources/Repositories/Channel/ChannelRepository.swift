@@ -9,6 +9,7 @@ protocol ChannelRepositoryType : CoreRepositoryType {
    // GET
    func getChannelInfo(input : CommonChannelInputType) async -> Result<ChannelInfoOutputType, RepositoryErrors>
    func getChannelData(channelId : String) async -> Result<[Chat], RepositoryErrors>
+   func getChannelChatUnreads(input : GetChatsInputType) async -> Int
    func getChannelChats(input : GetChatsInputType) async -> Result<[ChannelChatOutputType], RepositoryErrors>
    
    // POST
@@ -49,6 +50,17 @@ struct ChannelRepository : ChannelRepositoryType {
          return .success(chats)
       } else {
          return .failure(.error(message: errorText.NO_CHANNEL_DATA))
+      }
+   }
+   
+   func getChannelChatUnreads(input: GetChatsInputType) async -> Int {
+      let result = await request(router: ChannelRouter.getChannelChatUnreads(inputType: input),
+                                 of: GetChatsUnreadsOutputType.self)
+      switch result {
+      case let .success(count):
+         return count.count
+      case .failure:
+         return 0
       }
    }
    

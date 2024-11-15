@@ -8,6 +8,7 @@ enum ChannelRouter : EndpointProtocol {
    case createChannel(inputType : CreateChannelInputType)
    case sendChannelChat(inputType : ChatInputType)
    case getChannelChat(inputType : GetChatsInputType)
+   case getChannelChatUnreads(inputType : GetChatsInputType)
    
    var path: String {
       switch self {
@@ -19,12 +20,14 @@ enum ChannelRouter : EndpointProtocol {
          return "/workspaces/\(inputType.loungeId)/channels/\(inputType.roomId)/chats"
       case let .getChannelChat(inputType):
          return "/workspaces/\(inputType.loungeId)/channels/\(inputType.roomId)/chats"
+      case let .getChannelChatUnreads(inputType):
+         return "/workspaces/\(inputType.loungeId)/channels/\(inputType.roomId)/unreads"
       }
    }
    
    var method: FreeworkersNetworkKit.NetworkMethod {
       switch self {
-      case .getChannelChat, .getChannel:
+      case .getChannelChat, .getChannel, .getChannelChatUnreads:
          return .GET
       default:
          return .POST
@@ -35,6 +38,8 @@ enum ChannelRouter : EndpointProtocol {
       switch self {
       case let .getChannelChat(inputType):
          return [.init(name: "cursor_date", value: inputType.createdAt)]
+      case let .getChannelChatUnreads(inputType):
+         return [.init(name: "after", value: inputType.createdAt)]
       default:
          return nil
       }

@@ -7,7 +7,6 @@ import FreeworkersDBKit
 struct LoungeView : View {
    @EnvironmentObject var diContainer : DIContainer
    @StateObject var viewModel : LoungeViewModel
-   @State private var isChanged : Bool = false
    
    var body: some View {
       ZStack {
@@ -70,7 +69,6 @@ struct LoungeView : View {
          }
       }
    }
-   
 }
 
 fileprivate struct LoungeMainView : View {
@@ -90,9 +88,7 @@ fileprivate struct LoungeMainView : View {
                         viewModel.send(action: .channelToggleTapped)
                      }
                   
-                  withAnimation(.easeInOut) {
-                     LoungeChannelListView(viewModel: viewModel)
-                  }
+                  LoungeChannelListView(viewModel: viewModel)
                   
                   // MARK: 채널 생성 버튼
                   HStack {
@@ -112,6 +108,7 @@ fileprivate struct LoungeMainView : View {
                   }
                   .padding(.leading, 25.0)
                   
+                  // MAKR: 채널 조회 버튼
                   HStack {
                      Button {
                         viewModel.send(action: .findChannelButtonTapped)
@@ -132,6 +129,11 @@ fileprivate struct LoungeMainView : View {
                   Divider()
                   
                   // TODO: DMs 화면 구축 필요
+                  FWFlipedHeader(
+                     toggleCondition: $viewModel.directMessageToggleTapped,
+                     HeaderTitle: workspaceTitle.LOUNGE_HOME_DM_TITLE) {
+                        viewModel.send(action: .directMessageToggleTapped)
+                     }
                }
                .id(viewModel.getLoungeId() + "_homeTabScroll")
             }
@@ -145,7 +147,7 @@ fileprivate struct LoungeMainView : View {
          .navigationDestination(for: NavigationDestination.self) { destination in
             RoutingView(destination: destination)
          }
-         .task {
+         .onAppear {
             viewModel.send(action: .fetchLounge)
          }
       }
@@ -312,19 +314,39 @@ fileprivate struct LoungeChannelListView : View {
                   .padding(.horizontal, 25.0)
             } else {
                VStack {
-                  ForEach(viewModel.loungeChannelViewItem, id: \.channelId) { channel in
+                  ForEach(viewModel.loungeChannelViewItem.indices, id: \.self) { index in
+                     let channel = viewModel.loungeChannelViewItem
+                     let channelChatCountList = viewModel.loungeChannelChatCounts
                      LazyVStack {
-                        Text("# \(channel.channelName)")
-                           .font(.system(size: 16.0))
-                           .frame(maxWidth: .infinity, alignment: .leading)
-                           .padding(.horizontal, 25.0)
-                           .padding(.vertical, 5.0)
+                        HStack {
+                           if channelChatCountList.count == channel.count {
+                              Text("# \(channel[index].channelName)")
+                                 .font(.system(size: 15.0,
+                                               weight: channelChatCountList[index] != 0
+                                               ? .semibold 
+                                               : .regular)
+                                 )
+                              Spacer()
+                              if channelChatCountList[index] != 0 {
+                                 RoundedRectangle(cornerRadius: 10.0)
+                                    .fill(Color.primary)
+                                    .frame(width: 40.0, height: 20.0)
+                                    .overlay {
+                                       Text(String(channelChatCountList[index]))
+                                          .font(.fwCaption)
+                                          .foregroundStyle(.white)
+                                    }
+                              }
+                           }
+                        }
+                        .padding(.horizontal, 25.0)
+                        .padding(.vertical, 5.0)
                      }
                      .onTapGesture {
                         // TODO: 채널 채팅방 오픈 준비
                         viewModel.send(
-                           action: .pushToChannel(channelTitle: channel.channelName,
-                                                  channelId: channel.channelId)
+                           action: .pushToChannel(channelTitle: channel[index].channelName,
+                                                  channelId: channel[index].channelId)
                         )
                      }
                   }
