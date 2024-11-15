@@ -7,7 +7,7 @@ protocol WorkspaceRepositoryType : CoreRepositoryType {
    func getLounges() async -> Result<[LoungeCommonOutputType], RepositoryErrors>
    func getLounge(input : GetLoungeInputType) async -> Result<GetLoungeOutputType, RepositoryErrors>
    func getLoungeMyChannel(loungeId : String) async -> Result<[ChannelCommonOutputType], RepositoryErrors>
-   func getLoungeMembers(input : GetLoungeInputType) async -> Result<[UserCommonOutputType], RepositoryErrors>
+   func getLoungeMembers(input : GetLoungeInputType, exceptMe : Bool) async -> Result<[UserCommonOutputType], RepositoryErrors>
 
    func createRounge(input : CreateLoungeInput) async -> Result<Bool, RepositoryErrors>
    func inviteLounge(input : InviteLoungeInputType) async -> Result<Bool, RepositoryErrors>
@@ -60,12 +60,18 @@ struct WorkspaceRepository : WorkspaceRepositoryType {
       }
    }
    
-   func getLoungeMembers(input: GetLoungeInputType) async -> Result<[UserCommonOutputType], RepositoryErrors> {
+   func getLoungeMembers(input : GetLoungeInputType, exceptMe : Bool) async -> Result<[UserCommonOutputType], RepositoryErrors> {
       let result = await request(router: WorkspaceRouter.getLoungeMembers(InputType: input),
                                  of: [UserCommonOutputType].self)
+      let meId = await UserDefaultsRepository.shared.getValue(.userId)
+      
       switch result {
       case let .success(output):
-         return .success(output)
+         if exceptMe {
+            return .success(output.filter({ $0.user_id != meId }))
+         } else {
+            return .success(output)
+         }
       case .failure:
          return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
       }

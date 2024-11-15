@@ -7,7 +7,7 @@ protocol WorkspaceServiceType {
    func getLounges() async -> AnyPublisher<[LoungeListViewItem], ServiceErrors>
    func getLounge(input : GetLoungeInputType) async -> AnyPublisher<LoungeViewItem, ServiceErrors>
    func getLoungeMyChannel(loungeId : String) async -> AnyPublisher<[LoungeChannelViewItem], ServiceErrors>
-   func getLoungeMembers(input : GetLoungeInputType) async -> AnyPublisher<[UserCommonOutputType], ServiceErrors>
+   func getLoungeMembers(input : GetLoungeInputType, exceptMe : Bool) async -> AnyPublisher<[UserCommonOutputType], ServiceErrors>
    
    func createWorkspace(input : CreateLoungeInput) async -> AnyPublisher<Bool, ServiceErrors>
    func inviteLounge(input : InviteLoungeInputType) async -> AnyPublisher<Bool, ServiceErrors>
@@ -60,8 +60,8 @@ extension WorkspaceService {
       }.eraseToAnyPublisher()
    }
    
-   func getLoungeMembers(input: GetLoungeInputType) async -> AnyPublisher<[UserCommonOutputType], ServiceErrors> {
-      let result = await workspaceRepository.getLoungeMembers(input: input)
+   func getLoungeMembers(input: GetLoungeInputType, exceptMe : Bool) async -> AnyPublisher<[UserCommonOutputType], ServiceErrors> {
+      let result = await workspaceRepository.getLoungeMembers(input: input, exceptMe : exceptMe)
       return Future { promise in
          switch result {
          case let .success(output):
