@@ -10,6 +10,7 @@ protocol DMRepositoryType : CoreRepositoryType {
    func getLoungeDms(loungeId : String) async -> Result<[CommonDMOutputType], RepositoryErrors>
    func getDMDatas(loungeId : String, roomId : String) async -> Result<[Chat], RepositoryErrors>
    func getDms(input : GetChatsInputType) async -> Result<[DMChatOutputType], RepositoryErrors>
+   func getDmUnreads(input : GetChatsInputType) async -> GetChatsUnreadsOutputType? 
    
    // POST
    func openDms(input : OpenDMInputType) async -> Result<CommonDMOutputType, RepositoryErrors>
@@ -68,6 +69,21 @@ extension DMRepository {
             return .failure(.error(message: errorText.ERROR_UNKWON))
          }
       }
+   }
+   
+   func getDmUnreads(input : GetChatsInputType) async -> GetChatsUnreadsOutputType? {
+      let result = await request(router: DMRouter.getDmUnreads(inputType: input),
+                                 of: GetChatsUnreadsOutputType.self)
+      
+      if case let .success(unreads) = result {
+         return unreads
+      }
+      
+      if case .failure = result {
+         return nil
+      }
+      
+      return nil
    }
 }
 

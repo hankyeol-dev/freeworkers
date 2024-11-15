@@ -10,6 +10,7 @@ protocol DMServiceType {
    func getLoungeDms(loungeId : String) async -> AnyPublisher<[LoungeDMViewItem], ServiceErrors>
    func getDMDatas(loungeId: String, roomId: String) async -> AnyPublisher<[Chat], ServiceErrors>
    func getDms(input : GetChatsInputType) async -> AnyPublisher<[DMChatOutputType], ServiceErrors>
+   func getLoungeDmsWithUnreads(loungeId : String, unreadsHandler : @escaping([DMListViewItemWithUnreads]) -> Void) async
    
    // POST
    func openDms(input : OpenDMInputType) async -> AnyPublisher<OpenDMItem, ServiceErrors>
@@ -25,6 +26,7 @@ protocol DMServiceType {
 final class DMService : DMServiceType {
    private let dmRepository : DMRepositoryType
    private let channelRepository : ChannelRepositoryType
+   var store : Set<AnyCancellable> = .init()
    
    init(dmRepository: DMRepositoryType, channelRepository : ChannelRepositoryType) {
       self.dmRepository = dmRepository
@@ -79,6 +81,47 @@ extension DMService {
       case .failure:
          return nil
       }
+   }
+   
+   func getLoungeDmsWithUnreads(
+      loungeId : String,
+      unreadsHandler : @escaping([DMListViewItemWithUnreads]) -> Void
+   ) async {
+      await getLoungeDms(loungeId: loungeId)
+         .subscribe(on: DispatchQueue.global())
+         .receive(on: DispatchQueue.main)
+         .sink { _ in } receiveValue: { list in
+            Task {
+               await withTaskGroup(of: GetChatsUnreadsOutputType? .self) { taskGroup in
+                  for item in list {
+                     taskGroup.addTask {  [weak self] in
+                        guard let self else { return nil }
+                        let chat = await getLastSavedDM(loungeId: loungeId, roomId: item.roomId)
+                        if let chat {
+                           let input: GetChatsInputType = .init(loungeId: loungeId,
+                                                                roomId: item.roomId,
+                                                                createdAt: chat.createdAt)
+                           return await dmRepository.getDmUnreads(input: input)
+                        } else {
+                           return nil
+                        }
+                     }
+                  }
+                  
+                  var unreadsList : [DMListViewItemWithUnreads] = list.map({ .init(dmViewItem: $0, unreads: 0) })
+                  for await task in taskGroup {
+                     if let task,
+                        let first = unreadsList.firstIndex(where: { $0.dmViewItem.roomId == task.room_id })
+                     {
+                        unreadsList[first].unreads = task.count
+                     }
+                  }
+                  
+                  unreadsHandler(unreadsList)
+               }
+            }
+         }
+         .store(in: &store)
    }
 }
 
