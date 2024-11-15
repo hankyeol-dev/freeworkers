@@ -8,5 +8,6 @@ struct OpenDMItem : Hashable {
 
 struct DMListViewItemWithUnreads : Hashable {
    let dmViewItem : LoungeDMViewItem
+   var lastDM : String
    var unreads : Int
 }

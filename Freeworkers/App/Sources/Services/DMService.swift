@@ -92,7 +92,7 @@ extension DMService {
          .receive(on: DispatchQueue.main)
          .sink { _ in } receiveValue: { list in
             Task {
-               await withTaskGroup(of: GetChatsUnreadsOutputType? .self) { taskGroup in
+               await withTaskGroup(of: DMListViewItemWithUnreads?.self) { taskGroup in
                   for item in list {
                      taskGroup.addTask {  [weak self] in
                         guard let self else { return nil }
@@ -101,19 +101,20 @@ extension DMService {
                            let input: GetChatsInputType = .init(loungeId: loungeId,
                                                                 roomId: item.roomId,
                                                                 createdAt: chat.createdAt)
-                           return await dmRepository.getDmUnreads(input: input)
+                           let output = await dmRepository.getDmUnreads(input: input)
+                           return .init(dmViewItem: item,
+                                        lastDM: chat.content,
+                                        unreads: output?.count ?? 0)
                         } else {
                            return nil
                         }
                      }
                   }
                   
-                  var unreadsList : [DMListViewItemWithUnreads] = list.map({ .init(dmViewItem: $0, unreads: 0) })
+                  var unreadsList : [DMListViewItemWithUnreads] = []
                   for await task in taskGroup {
-                     if let task,
-                        let first = unreadsList.firstIndex(where: { $0.dmViewItem.roomId == task.room_id })
-                     {
-                        unreadsList[first].unreads = task.count
+                     if let task {
+                        unreadsList.append(task)
                      }
                   }
                   
