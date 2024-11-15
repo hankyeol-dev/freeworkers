@@ -56,10 +56,11 @@ struct FWImageViewer : View {
                         .font(.fwRegular)
                         .foregroundStyle(.black)
                   }
-            }.padding(.top, 15.0).padding(.trailing, 15.0),
+            }.padding(.top, 70.0).padding(.trailing, 30.0),
             alignment: .topTrailing
          )
       }
+      .ignoresSafeArea()
       .gesture(
          DragGesture().updating($dragOffset) { dragValue, movingValue, _ in
             movingValue = dragValue.translation
