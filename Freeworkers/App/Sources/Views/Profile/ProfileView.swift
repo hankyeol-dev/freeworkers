@@ -150,7 +150,6 @@ struct ProfileView : View {
                Spacer.height(20.0)
                
                FWRoundedButton(title: "DM 보내기", width: 360.0, height: 50.0) {
-                  // TODO: pop -> DM 방으로 보내기
                   dmHandler?(profileItem.userId)
                }
                

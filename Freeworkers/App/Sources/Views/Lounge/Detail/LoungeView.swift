@@ -25,47 +25,55 @@ struct LoungeView : View {
    
    @ViewBuilder
    var tabView : some View {
-      TabView(selection: $viewModel.selectedTab) {
-         LoungeMainView(viewModel: viewModel)
-            .tabItem {
-               viewModel.selectedTab == .home
-               ? LoungeTabItem.home.toActiveImage
-               : LoungeTabItem.home.toInActiveImage
+      VStack {
+         ZStack {
+            switch viewModel.selectedTab {
+            case .home:
+               LoungeMainView(viewModel: viewModel)
+            case .directMessage:
+               LoungeDMListView()
+            case .search:
+               LoungeSearchView()
+            case .setting:
+               if let loungeViewItem = viewModel.loungeViewItem {
+                  LoungeSettingView(
+                     viewModel: .init(
+                        diContainer: diContainer,
+                        loungeItem: loungeViewItem)
+                  )
+               }
             }
-            .tag(LoungeTabItem.home)
-            .id(LoungeTabItem.home)
-         
-         LoungeDMListView()
-            .tabItem {
-               viewModel.selectedTab == .directMessage
-               ? LoungeTabItem.directMessage.toActiveImage
-               : LoungeTabItem.directMessage.toInActiveImage
-            }
-            .tag(LoungeTabItem.directMessage)
-            .id(LoungeTabItem.directMessage)
-         
-         LoungeSearchView()
-            .tabItem {
-               viewModel.selectedTab == .search
-               ? LoungeTabItem.search.toActiveImage
-               : LoungeTabItem.search.toInActiveImage
-            }
-            .tag(LoungeTabItem.search)
-            .id(LoungeTabItem.search)
-         
-         if let loungeViewItem = viewModel.loungeViewItem {
-            LoungeSettingView(
-               viewModel: .init(
-                  diContainer: diContainer,
-                  loungeItem: loungeViewItem)
-            )
-            .tabItem {
-               viewModel.selectedTab == .setting
-               ? LoungeTabItem.setting.toActiveImage
-               : LoungeTabItem.setting.toInActiveImage
-            }
-            .tag(LoungeTabItem.setting)
-            .id(LoungeTabItem.setting)
+         }
+         Spacer()
+         if !diContainer.hideTab {
+            loungeTabBar
+         }
+      }
+   }
+   
+   @ViewBuilder
+   var loungeTabBar : some View {
+      HStack(alignment: .center, spacing: 10.0) {
+         Spacer()
+         ForEach(LoungeTabItem.allCases, id:\.self) { item in
+            loungeTabItem(item)
+            Spacer()
+         }
+      }
+      .padding()
+   }
+   
+   @ViewBuilder
+   func loungeTabItem(_ tabItem : LoungeTabItem) -> some View {
+      Button { viewModel.selectedTab = tabItem } label: {
+         if viewModel.selectedTab == tabItem  {
+            tabItem.toActiveImage
+               .resizable()
+               .frame(width: 24.0, height: 24.0)
+         } else {
+            tabItem.toInActiveImage
+               .resizable()
+               .frame(width: 24.0, height: 24.0)
          }
       }
    }
@@ -128,12 +136,13 @@ fileprivate struct LoungeMainView : View {
                   
                   Divider()
                   
-                  // TODO: DMs 화면 구축 필요
                   FWFlipedHeader(
                      toggleCondition: $viewModel.directMessageToggleTapped,
                      HeaderTitle: workspaceTitle.LOUNGE_HOME_DM_TITLE) {
                         viewModel.send(action: .directMessageToggleTapped)
                      }
+                  
+                  LoungeMainDMListView(viewModel: viewModel)
                }
                .id(viewModel.getLoungeId() + "_homeTabScroll")
             }
@@ -148,6 +157,7 @@ fileprivate struct LoungeMainView : View {
             RoutingView(destination: destination)
          }
          .onAppear {
+            if diContainer.hideTab { diContainer.toggleTab() }
             viewModel.send(action: .fetchLounge)
          }
       }
@@ -247,7 +257,6 @@ fileprivate struct LoungeSideMenu : View {
                   
                   Spacer.height(10.0)
                   
-                  // TODO: LoungeList
                   ScrollView(.vertical) {
                      ForEach(viewModel.loungeListItem, id: \.loungeId) { lounge in
                         LazyVStack {
@@ -343,7 +352,6 @@ fileprivate struct LoungeChannelListView : View {
                         .padding(.vertical, 5.0)
                      }
                      .onTapGesture {
-                        // TODO: 채널 채팅방 오픈 준비
                         viewModel.send(
                            action: .pushToChannel(channelTitle: channel[index].channelName,
                                                   channelId: channel[index].channelId)
@@ -400,5 +408,52 @@ fileprivate struct LoungeChannelCreateView : View {
       }
       .padding(.horizontal, 20.0)
       .background(Color.bg)
+   }
+}
+
+fileprivate struct LoungeMainDMListView : View {
+   @ObservedObject fileprivate var viewModel : LoungeViewModel
+   
+   var body: some View {
+      ScrollView(.vertical) {
+         if viewModel.directMessageToggleTapped {
+            let dms = viewModel.loungeDMList
+            if dms.isEmpty {
+               EmptyView()
+            } else {
+               ForEach(dms.indices, id:\.self) { index in
+                  LazyVStack {
+                     let opponent = dms[index].dmViewItem.opponent
+                     let unreads = dms[index].unreads
+                     HStack {
+                        FWImage(imagePath: opponent.profileImage ?? "/")
+                           .frame(width: 20.0, height: 20.0)
+                        Spacer.width(15.0)
+                        Text(opponent.nickname)
+                           .font(.fwRegular)
+                        
+                        Spacer()
+                        
+                        if unreads != 0 {
+                           RoundedRectangle(cornerRadius: 10.0)
+                              .fill(Color.primary)
+                              .frame(width: 35.0, height: 20.0)
+                              .overlay {
+                                 Text(unreads > 99 ? "+ 99" : String(unreads))
+                                    .font(.fwCaption)
+                                    .foregroundStyle(.white)
+                              }
+                        }
+                     }
+                     .padding(.horizontal, 25.0)
+                     .padding(.vertical, 5.0)
+                  }
+                  .onTapGesture {
+                     viewModel.send(action: .pushToDM(dmItem: dms[index]))
+                  }
+               }
+            }
+         }
+      }
    }
 }
