@@ -13,12 +13,12 @@ struct FWImage : View {
    let placeholderImageName : String
    
    private var placeholderImage : UIImage {
-      UIImage(named: placeholderImageName) ?? UIImage(systemName: "person.circle")!
+      UIImage(named: placeholderImageName) ?? UIImage(resource: .loading)
    }
    
    init(imagePath: String, placeholderImageName: String? = nil) {
       self.imagePath = imagePath
-      self.placeholderImageName = placeholderImageName ?? ""
+      self.placeholderImageName = placeholderImageName ?? "loadingImage"
    }
    
    var body: some View {

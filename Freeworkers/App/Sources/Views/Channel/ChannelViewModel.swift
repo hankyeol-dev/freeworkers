@@ -92,7 +92,6 @@ extension ChannelViewModel {
       await fetchChannelData { [weak self] chats in
          guard let self else { return }
          var requestInput : GetChatsInputType
-         print("여기가 1번")
          // 2. database에서 불러온 데이터 중 마지막 데이터의 created_at 값으로 서버에 조회한다.
          if let latestChatDate = chats.last?.createdAt {
             requestInput = .init(loungeId: loungeId, roomId: channelId, createdAt: latestChatDate)
@@ -149,7 +148,6 @@ extension ChannelViewModel {
       guard let index = photoDatas.firstIndex(where: { $0.0 == data }) else {
          return
       }
-      // TODO: 왜 안되는걸까?
       photoSelection.remove(at: index)
       photoDatas.remove(at: index)
    }

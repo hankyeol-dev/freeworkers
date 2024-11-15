@@ -12,7 +12,6 @@ struct ChannelView : View {
    
    var body: some View {
       VStack {
-         // TODO: Chatting View
          chattingView
          Spacer()
          chattingBar
@@ -22,10 +21,13 @@ struct ChannelView : View {
          if viewModel.isDisplayPhotoViewer, let chat = viewModel.selectedChat {
             FWImageViewer(files: chat.files,
                           selectedImageIndex: $viewModel.photoViewerIndex) {
+               chatTextViewFocus = false
                viewModel.send(action: .togglePhotoViewer)
             }
          }
       }
+      .toolbar(.hidden, for: .tabBar)
+      .toolbar(viewModel.isDisplayPhotoViewer ? .hidden : .visible, for: .navigationBar)
       .task {
          viewModel.send(action: .enterChannel)
       }
@@ -51,8 +53,6 @@ struct ChannelView : View {
          RoutingView(destination: destination)
       }
       .fullScreenCover(isPresented: $viewModel.isDisplayAnotherProfile) {
-         print("dismiss")
-      } content: {
          VStack {
             HStack {
                Image(systemName: "xmark")
@@ -96,7 +96,6 @@ struct ChannelView : View {
          }
          .onChange(of: chatTextViewFocus) { _, newValue in
             if newValue {
-               print(newValue)
                proxy.scrollTo(viewModel.chats.last?.id, anchor: .bottom)
             }
          }

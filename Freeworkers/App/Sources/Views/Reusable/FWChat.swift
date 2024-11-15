@@ -22,7 +22,6 @@ struct FWChat : View {
          if !chat.me {
             profileImage
                .onTapGesture {
-                  print(chat.userId)
                   profileTapHandler(chat)
                }
          }
