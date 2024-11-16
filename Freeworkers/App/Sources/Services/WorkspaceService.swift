@@ -11,6 +11,10 @@ protocol WorkspaceServiceType {
    
    func createWorkspace(input : CreateLoungeInput) async -> AnyPublisher<Bool, ServiceErrors>
    func inviteLounge(input : InviteLoungeInputType) async -> AnyPublisher<Bool, ServiceErrors>
+   
+   func editLounge(input : EditLoungeInputType) async -> AnyPublisher<LoungeViewItem, ServiceErrors>
+   func changeLoungeOwner(input : ChangeOwnerInputType) async -> AnyPublisher<LoungeViewItem, ServiceErrors>
+   func exitLounge(loungeId : String) async -> AnyPublisher<Bool, ServiceErrors>
 }
 
 struct WorkspaceService : WorkspaceServiceType {
@@ -71,6 +75,18 @@ extension WorkspaceService {
          }
       }.eraseToAnyPublisher()
    }
+   
+   func exitLounge(loungeId : String) async -> AnyPublisher<Bool, ServiceErrors> {
+      let result = await workspaceRepository.exitLounge(loungeId: loungeId)
+      return Future { promise in
+         switch result {
+         case .success:
+            promise(.success(true))
+         case let .failure(errors):
+            promise(.failure(.error(message: errors.errorMessage)))
+         }
+      }.eraseToAnyPublisher()
+   }
 }
 
 // MARK: POST, CREATE
@@ -95,6 +111,32 @@ extension WorkspaceService {
             promise(.success(true))
          case let .failure(error):
             promise(.failure(.error(message: error.errorMessage)))
+         }
+      }.eraseToAnyPublisher()
+   }
+}
+
+extension WorkspaceService {
+   func editLounge(input: EditLoungeInputType) async -> AnyPublisher<LoungeViewItem, ServiceErrors> {
+      let result = await workspaceRepository.editLounge(input: input)
+      return Future { promise in
+         switch result {
+         case let .success(output):
+            promise(.success(output.toLoungeViewItem))
+         case let .failure(errors):
+            promise(.failure(.error(message: errors.errorMessage)))
+         }
+      }.eraseToAnyPublisher()
+   }
+   
+   func changeLoungeOwner(input: ChangeOwnerInputType) async -> AnyPublisher<LoungeViewItem, ServiceErrors> {
+      let result = await workspaceRepository.changeLoungeOwner(input: input)
+      return Future { promise in
+         switch result {
+         case let .success(output):
+            promise(.success(output.toLoungeViewItem))
+         case let .failure(errors):
+            promise(.failure(.error(message: errors.errorMessage)))
          }
       }.eraseToAnyPublisher()
    }
