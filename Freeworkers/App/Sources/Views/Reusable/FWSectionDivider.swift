@@ -3,15 +3,17 @@
 import SwiftUI
 
 struct FWSectionDivider : View {
+   private var color : Color
    private var height : CGFloat
    
-   init(height: CGFloat = 10.0) {
+   init(color : Color = Color.bg, height: CGFloat = 10.0) {
+      self.color = color
       self.height = height
    }
    
    var body: some View {
       Rectangle()
-         .fill(Color.bg)
+         .fill(color)
          .frame(height: height)
          .frame(maxWidth: .infinity)
    }
