@@ -6,6 +6,7 @@ import FreeworkersNetworkKit
 enum DMRouter : EndpointProtocol {
    case getDMLists(loungeId : String)
    case getDms(inputType : GetChatsInputType)
+   case getDmUnreads(inputType : GetChatsInputType)
    
    case openDms(inputType : OpenDMInputType)
    case sendDm(inputType : ChatInputType)
@@ -16,6 +17,8 @@ enum DMRouter : EndpointProtocol {
          return "/workspaces/\(loungeId)/dms"
       case let .getDms(inputType):
          return "/workspaces/\(inputType.loungeId)/dms/\(inputType.roomId)/chats"
+      case let .getDmUnreads(inputType):
+         return "/workspaces/\(inputType.loungeId)/dms/\(inputType.roomId)/unreads"
          
       case let .openDms(inputType):
          return "/workspaces/\(inputType.loungeId)/dms"
@@ -26,7 +29,7 @@ enum DMRouter : EndpointProtocol {
    
    var method: NetworkMethod {
       switch self {
-      case .getDMLists, .getDms:
+      case .getDMLists, .getDms, .getDmUnreads:
          return .GET
       case .openDms, .sendDm:
          return .POST
@@ -37,6 +40,8 @@ enum DMRouter : EndpointProtocol {
       switch self {
       case let .getDms(inputType):
          return [.init(name: "cursor_date", value: inputType.createdAt)]
+      case let .getDmUnreads(inputType):
+         return [.init(name: "after", value: inputType.createdAt)]
       default:
          return nil
       }

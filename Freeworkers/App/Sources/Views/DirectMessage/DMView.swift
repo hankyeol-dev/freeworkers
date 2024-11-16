@@ -6,7 +6,7 @@ struct DMView : View {
    @EnvironmentObject var diContainer : DIContainer
    @StateObject var viewModel : DMViewModel
    @FocusState private var chatFocus : Bool
-   
+      
    var body: some View {
       VStack {
          chattingView
@@ -25,6 +25,7 @@ struct DMView : View {
          }
       }
       .task {
+         if !diContainer.hideTab { diContainer.toggleTab() }
          viewModel.send(action: .didLoad)
       }
       .onDisappear {

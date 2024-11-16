@@ -10,7 +10,7 @@ final class DMViewModel : ViewModelType {
    private let diContainer : DIContainer
    private let loungeId : String
    private let userId : String // MARK: opponenetId
-   private var roomId : String? { didSet { print(self.roomId) } }
+   private var roomId : String?
    
    var store: Set<AnyCancellable> = .init()
    

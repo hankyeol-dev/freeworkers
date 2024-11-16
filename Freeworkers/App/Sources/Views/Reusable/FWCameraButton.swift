@@ -12,6 +12,5 @@ struct FWCameraButton : View {
                .frame(width: 8.0, height: 6.0)
                .foregroundStyle(.white)
          }
-         .frame(width: 18.0, height: 18.0)
    }
 }

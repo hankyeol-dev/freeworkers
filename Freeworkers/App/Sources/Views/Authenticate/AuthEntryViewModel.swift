@@ -42,7 +42,6 @@ extension AuthEntryViewModel {
          .store(in: &store)
    }
    
-   // TODO: 어떻게 활용할지 고민하기
    private func getLatestEnteredChannel() {
       diContainer.services.authService.getLatestEnteredChannel()
          .receive(on: DispatchQueue.main)

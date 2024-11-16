@@ -5,13 +5,13 @@ import PackageDescription
 import struct ProjectDescription.PackageSettings
 
 let packageSettings = PackageSettings(
-   productTypes: ["MijickPopupView" : .framework]
+//   productTypes: ["MijickPopupView" : .framework]
 )
 #endif
 
 let package = Package(
    name: "freeworkers",
    dependencies: [
-      .package(url: "https://github.com/Mijick/Popups.git", exact: "2.7.1")
+//      .package(url: "https://github.com/Mijick/Popups.git", exact: "2.7.1")
    ]
 )

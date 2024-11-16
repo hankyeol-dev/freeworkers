@@ -22,6 +22,7 @@ final class LoungeViewModel : ViewModelType {
    @Published var loungeChannelViewItem : [LoungeChannelViewItem] = []
    @Published var loungeChannelChatCounts : [Int] = []
    @Published var loungeListItem : [LoungeListViewItem] = []
+   @Published var loungeDMList : [DMListViewItemWithUnreads] = []
    
    @Published var canCreateChannel : Bool = false
    @Published var createChannelName : String = ""
@@ -34,7 +35,6 @@ final class LoungeViewModel : ViewModelType {
       case createChannelButtonTapped
       case findChannelButtonTapped
       case sideLoungeMenuTapped
-      case popToLounge
       
       // Data Fetch
       case fetchLounge
@@ -48,8 +48,9 @@ final class LoungeViewModel : ViewModelType {
       case createChannel
       
       // Navigate
-      case pushToChannel(channelTitle : String, channelId : String)
       case pushToProfile(userId : String)
+      case pushToChannel(channelTitle : String, channelId : String)
+      case pushToDM(dmItem : DMListViewItemWithUnreads)
    }
    
    enum SheetConfig : Int, Hashable, Identifiable {
@@ -77,9 +78,7 @@ final class LoungeViewModel : ViewModelType {
          findChannelTapped.toggle()
       case .sideLoungeMenuTapped:
          sideLoungeMenuTapped.toggle()
-      case .popToLounge:
-         diContainer.navigator.pop()
-         
+   
       case .fetchLounge:
          Task { await didLoad() }
       case .fetchLounges:
@@ -91,14 +90,23 @@ final class LoungeViewModel : ViewModelType {
          validCreateChannelName(name)
       case .createChannel:
          Task { await createChannel() }
+      case let .pushToProfile(userId):
+         diContainer.toggleTab()
+         diContainer.navigator.push(to: .profile(userId: userId))
       case let .pushToChannel(channelTitle, channelId):
+         diContainer.toggleTab()
          diContainer.navigator.push(
             to: .channel(channelTitle: channelTitle,
                          channelId: channelId,
                          loungeId: loungeId)
          )
-      case let .pushToProfile(userId):
-         diContainer.navigator.push(to: .profile(userId: userId))
+      case let .pushToDM(dmItem):
+         diContainer.toggleTab()
+         diContainer.navigator.push(
+            to: .dm(username: dmItem.dmViewItem.opponent.nickname,
+                    userId: dmItem.dmViewItem.opponent.user_id,
+                    loungeId: loungeId)
+         )
       }
    }
 }
@@ -142,6 +150,12 @@ extension LoungeViewModel {
             self?.loungeViewItem = viewItem
          }
          .store(in: &store)
+      
+      await diContainer.services.dmService.getLoungeDmsWithUnreads(loungeId: loungeId) { items in
+         DispatchQueue.main.async { [weak self] in
+            self?.loungeDMList = items
+         }
+      }
    }
    
    private func fetchMyChannels() async {

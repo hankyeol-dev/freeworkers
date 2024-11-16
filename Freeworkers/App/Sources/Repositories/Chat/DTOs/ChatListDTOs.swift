@@ -9,13 +9,6 @@ struct GetChatsInputType {
 }
 
 struct GetChatsUnreadsOutputType : Decodable {
+   let room_id : String
    let count : Int
 }
-
-/**
- {
-   "channel_id": "68265ef7-a91a-4522-a05b-5475088a61d6",
-   "name": "새싹",
-   "count": 100
- }
- */

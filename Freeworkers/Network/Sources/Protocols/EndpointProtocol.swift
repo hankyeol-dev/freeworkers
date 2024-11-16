@@ -9,8 +9,6 @@ public protocol EndpointProtocol {
    var parameters: [URLQueryItem]? { get }
    var headers: Task<[String : String], Never> { get }
    var body: Data? { get }
-   //   var inputType : Encodable? { get }
-   //   var outputType : Decodable { get }
 }
 
 public extension EndpointProtocol {
@@ -67,7 +65,6 @@ public extension EndpointProtocol {
       }
       
       if let files {
-         print("여기 들어오지?")
          files.forEach { file in
             dataSet.appendString("--\(boundary)\(crlf)")
             dataSet.appendString("Content-Disposition: form-data; name=\"\(fileKey)\"; filename=\"file.jpeg\"\(crlf)")

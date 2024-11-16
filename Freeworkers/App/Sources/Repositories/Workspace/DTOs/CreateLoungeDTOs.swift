@@ -33,4 +33,13 @@ struct LoungeCommonOutputType : Decodable {
                    ownerId: owner_id,
                    createdAt: createdAt)
    }
+   
+   var toLoungeViewItem : LoungeViewItem {
+      return .init(loungeId: workspace_id,
+                   name: name,
+                   description: description,
+                   coverImage: coverImage,
+                   ownerId: owner_id,
+                   createdAt: createdAt, channels: [])
+   }
 }

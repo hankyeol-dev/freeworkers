@@ -26,8 +26,7 @@ let appProject = Project(name: "APP",
                               dependencies: [
                                  .project(target: "FreeworkersNetworkKit", path: "../Network"),
                                  .project(target: "FreeworkersDBKit", path: "../Database"),
-                                 .project(target: "FreeworkersImageKit", path: "../Image"),
-                                 .external(name: "MijickPopupView")
+                                 .project(target: "FreeworkersImageKit", path: "../Image")
                               ])
                          ],
                          fileHeaderTemplate: .string("hankyeol-dev.")

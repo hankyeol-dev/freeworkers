@@ -17,15 +17,15 @@ struct FWFlipedHeader : View {
                action()
             }
          } label: {
-            withAnimation(.easeInOut) {
-               Image(systemName: "chevron.up")
-                  .resizable()
-                  .frame(width: 10.0, height: 6.0)
-                  .rotationEffect(
+            Image(systemName: "chevron.up")
+               .resizable()
+               .frame(width: 10.0, height: 6.0)
+               .rotationEffect(
+                  withAnimation(.easeInOut) {
                      Angle(degrees: toggleCondition ? 180 : 0)
-                  )
-                  .foregroundStyle(.black)
-            }
+                  }
+               )
+               .foregroundStyle(.black)
          }
       }
       .padding(.horizontal, 20.0)
