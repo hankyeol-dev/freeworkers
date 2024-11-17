@@ -261,6 +261,7 @@ fileprivate struct LoungeSideMenu : View {
                   
                   ScrollView(.vertical) {
                      ForEach(viewModel.loungeListItem, id: \.loungeId) { lounge in
+                        let selectedLounge = viewModel.getLoungeId() == lounge.loungeId
                         LazyVStack {
                            HStack(spacing: 12.0) {
                               Spacer.width(10.0)
@@ -271,18 +272,17 @@ fileprivate struct LoungeSideMenu : View {
                               VStack(alignment: .leading, spacing: 5.0) {
                                  Text(lounge.loungeName)
                                     .font(.fwT2)
-                                    .foregroundStyle(.black)
+                                    .foregroundStyle(selectedLounge ? .white : .black)
                                     .lineLimit(1)
                                  Text(lounge.createdAt.toISO860().toChatDate() + "오픈")
                                     .font(.fwRegular)
-                                    .foregroundStyle(.gray.opacity(1.5))
+                                    .foregroundStyle(selectedLounge ? .white : .gray.opacity(1.5))
                               }
                               
                               Spacer()
                            }
                            .frame(height: 60.0)
-                           .background(viewModel.getLoungeId() == lounge.loungeId
-                                       ? Color.primary.opacity(0.5) : Color.clear)
+                           .background(selectedLounge ? Color.primary : Color.clear)
                            .clipShape(UnevenRoundedRectangle(
                               cornerRadii: .init(topLeading: 5.0,
                                                  bottomLeading: 5.0)))
@@ -296,7 +296,13 @@ fileprivate struct LoungeSideMenu : View {
                         }
                      }
                   }
-                  // TODO: 유저가 나가면 disconnect
+                  
+                  Divider()
+                  
+                  HStack {
+                     FWRoundedButton(title: "새로운 라운지 만들기", width: 240.0, height: 40.0) {}
+                  }.frame(maxWidth: .infinity, alignment: .center)
+                  
                   Spacer()
                }
                .frame(width: 310.0, alignment: .topLeading)

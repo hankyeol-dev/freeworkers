@@ -5,7 +5,9 @@ import PhotosUI
 
 struct ChannelView : View {
    @EnvironmentObject var diContainer : DIContainer
+   @Environment(\.scenePhase) private var scenePhase
    @StateObject var viewModel : ChannelViewModel
+
    @FocusState private var chatTextViewFocus : Bool
    
    var disappearHandler : ((_ userName : String, _ userId : String, _ loungeId : String ) -> Void)?
@@ -36,6 +38,9 @@ struct ChannelView : View {
          if viewModel.isMoveToDM, let info = viewModel.anotherUserInfo {
             disappearHandler?(info.username, info.userId, viewModel.getLoungeId())
          }
+      }
+      .onChange(of: scenePhase) { _, updatedPhase in
+         if updatedPhase == .inactive { viewModel.send(action: .disconnect) }
       }
       .toolbar {
          ToolbarItem(placement: .topBarTrailing) {

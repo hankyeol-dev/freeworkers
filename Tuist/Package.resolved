@@ -1,13 +1,31 @@
 {
-  "originHash" : "ce4ceaa84409252450de91e1783c95830ea1930e54b5624b6cd3b770059eec42",
+  "originHash" : "f530dbc2e792be4225aa609da9ca94f50b8fe1367d2f46c8b4a6e23b405dbaf9",
   "pins" : [
     {
-      "identity" : "popups",
+      "identity" : "alamofire",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Mijick/Popups.git",
+      "location" : "https://github.com/Alamofire/Alamofire.git",
       "state" : {
-        "revision" : "60ebc93bbcf06d78b0123389e641c3a451c80f65",
-        "version" : "2.7.1"
+        "revision" : "e16d3481f5ed35f0472cb93350085853d754913f",
+        "version" : "5.10.1"
+      }
+    },
+    {
+      "identity" : "iamport-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/iamport/iamport-ios.git",
+      "state" : {
+        "revision" : "d2d34cc6c12aa22b70ea8b8f49c161930f60d013",
+        "version" : "1.4.6"
+      }
+    },
+    {
+      "identity" : "rxswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ReactiveX/RxSwift.git",
+      "state" : {
+        "revision" : "c7c7d2cf50a3211fe2843f76869c698e4e417930",
+        "version" : "6.8.0"
       }
     },
     {
@@ -26,6 +44,15 @@
       "state" : {
         "revision" : "c6bfd1af48efcc9a9ad203665db12375ba6b145a",
         "version" : "4.0.8"
+      }
+    },
+    {
+      "identity" : "then",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/devxoul/Then.git",
+      "state" : {
+        "revision" : "e421a7b3440a271834337694e6050133a3958bc7",
+        "version" : "2.7.0"
       }
     }
   ],

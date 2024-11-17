@@ -26,7 +26,8 @@ let appProject = Project(name: "APP",
                               dependencies: [
                                  .project(target: "FreeworkersNetworkKit", path: "../Network"),
                                  .project(target: "FreeworkersDBKit", path: "../Database"),
-                                 .project(target: "FreeworkersImageKit", path: "../Image")
+                                 .project(target: "FreeworkersImageKit", path: "../Image"),
+                                 .external(name: "iamport-ios")
                               ])
                          ],
                          fileHeaderTemplate: .string("hankyeol-dev.")

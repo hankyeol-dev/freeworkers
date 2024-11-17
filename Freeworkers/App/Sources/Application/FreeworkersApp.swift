@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 import FreeworkersDBKit
-import MijickPopupView
 
 @main
 struct FreeworkersApp: App {
@@ -12,14 +11,8 @@ struct FreeworkersApp: App {
       WindowGroup {
          AuthEntryView(viewModel: .init(diContainer: diContainer))
             .environmentObject(diContainer)
-            .implementPopupView(config: configPopup)
       }
-      .modelContainer(DatabaseService.shared.getContainer()) // DB
+      .modelContainer(DatabaseService.shared.getContainer())
    }
 }
 
-extension FreeworkersApp {
-   func configPopup(_ config : GlobalConfig) -> GlobalConfig {
-      config.centre { $0.tapOutsideToDismiss(true) }
-   }
-}
