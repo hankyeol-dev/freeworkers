@@ -7,6 +7,8 @@ protocol UserRepositoryType : CoreRepositoryType {
    func getMe() async -> Result<MeViewItem, RepositoryErrors>
    func getAnother(_ userId : String) async -> Result<UserCommonOutputType, RepositoryErrors>
    
+   func validatePayment(input : PaymentInputType) async -> Result<PaymentOutputType, RepositoryErrors>
+   
    func putNickname(nickname : String) async -> Result<Bool, RepositoryErrors>
    func putPhone(phone : String) async -> Result<Bool, RepositoryErrors>
 }
@@ -48,6 +50,26 @@ struct UserRepository : UserRepositoryType {
       }
       
       return .failure(.error(message: errorText.ERROR_UNKWON))
+   }
+}
+
+extension UserRepository {
+   func validatePayment(input: PaymentInputType) async -> Result<PaymentOutputType, RepositoryErrors> {
+      let result = await request(router: UserRouter.paymentValidation(inputType: input),
+                                 of: PaymentOutputType.self)
+      switch result {
+      case let .success(output):
+         return .success(output)
+      case let .failure(errors):
+         switch errors {
+         case .error(.E81), .error(.E82):
+            return .failure(.error(message: errorText.NOT_VALID_PAYMENT))
+         case .error(.E11):
+            return .failure(.error(message: errorText.ERROR_DATA_NOTFOUND))
+         default:
+            return .failure(.error(message: errorText.ERROR_UNKWON))
+         }
+      }
    }
 }
 

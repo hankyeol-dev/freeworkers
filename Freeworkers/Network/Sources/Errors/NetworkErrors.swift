@@ -17,5 +17,7 @@ public enum NetworkErrorTypes: String {
    case E14
    case E15
    case E21
+   case E81
+   case E82
    case E99
 }

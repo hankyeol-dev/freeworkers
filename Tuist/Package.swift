@@ -5,13 +5,14 @@ import PackageDescription
 import struct ProjectDescription.PackageSettings
 
 let packageSettings = PackageSettings(
-//   productTypes: ["MijickPopupView" : .framework]
+   productTypes: ["iamport-ios" : .framework, "SocketIO" : .framework]
 )
 #endif
 
 let package = Package(
    name: "freeworkers",
    dependencies: [
-//      .package(url: "https://github.com/Mijick/Popups.git", exact: "2.7.1")
+      .package(url: "https://github.com/iamport/iamport-ios.git", exact: "1.4.6"),
+      .package(url: "https://github.com/socketio/socket.io-client-swift.git", exact: "16.1.1")
    ]
 )

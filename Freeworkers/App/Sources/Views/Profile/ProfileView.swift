@@ -20,6 +20,7 @@ struct ProfileView : View {
                         .frame(width: 50.0, height: 50.0)
                         .clipShape(RoundedRectangle(cornerRadius: 5.0))
                      FWCameraButton()
+                        .frame(width: 24.0, height: 24.0)
                         .padding(.leading, 50.0)
                         .padding(.top, 45.0)
                         .onTapGesture {
@@ -207,6 +208,9 @@ struct ProfileFillCoinView : View {
    @State private var purchaseList : [(Int, Int)] = [(10, 100), (50, 500), (100, 1000)]
    @State var coin : Int
    
+   @State private var selectedItem : (Int, Int) = (0, 0)
+   @State private var displayPayment : Bool = false
+   
    var body: some View {
       VStack {
          ProfileBannerView(title: "현재 보유 코인", background: Color.bg) {
@@ -230,7 +234,8 @@ struct ProfileFillCoinView : View {
                   foreground: .white,
                   background: Color.primary
                ) {
-                  
+                  displayPayment = true
+                  selectedItem = item
                }
             } tapAction: {}
          }
@@ -238,8 +243,24 @@ struct ProfileFillCoinView : View {
          Spacer()
       }
       .padding()
+      .sheet(isPresented: $displayPayment){
+         let input: PaymentInputItem = .init(
+            paymentAmount: String(selectedItem.1),
+            paymentItem: String(selectedItem.0) + "코인",
+            paymentBuyer: "")
+         ProfileStoreView(paymentInput: input) { responseInput in
+            await paymentResponseHandler(input: responseInput)
+         }
+      }
    }
    
+   @MainActor
+   private func paymentResponseHandler(input : PaymentInputType) async {
+      let response = await diContainer.services.userService.paymentValidation(input: input)
+      if let response {
+         coin += response.sesacCoin
+      }
+   }
 }
 
 struct ProfilePatchNicknameView : View {

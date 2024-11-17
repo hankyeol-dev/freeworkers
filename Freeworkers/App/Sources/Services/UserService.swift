@@ -7,6 +7,8 @@ protocol UserServiceType {
    func getMe() async -> AnyPublisher<MeViewItem, ServiceErrors>
    func getAnother(_ userId : String) async -> AnyPublisher<AnotherViewItem, ServiceErrors>
    
+   func paymentValidation(input : PaymentInputType) async -> PaymentOutputType?
+   
    func putNickname(nickname : String) async -> Result<Bool, ServiceErrors>
    func putPhone(phone : String) async -> Result<Bool, ServiceErrors>
 }
@@ -43,6 +45,18 @@ extension UserService {
             promise(.failure(.error(message: erros.errorMessage)))
          }
       }.eraseToAnyPublisher()
+   }
+}
+
+extension UserService {
+   func paymentValidation(input : PaymentInputType) async -> PaymentOutputType? {
+      let output = await userRepository.validatePayment(input: input)
+      switch output {
+      case let .success(billing):
+         return billing
+      case .failure:
+         return nil
+      }
    }
 }
 
