@@ -4,8 +4,8 @@ import UIKit
 import CryptoKit
 
 public protocol FilemangerProviderType {
-   func getImage(_ sort: String) throws -> UIImage?
-   func saveImage(_ sort: String, image: UIImage) throws
+   func getImage(_ path: String) throws -> UIImage?
+   func saveImage(_ path: String, image: UIImage) throws
 }
 
 public final class FilemanagerProvider : FilemangerProviderType {
@@ -22,16 +22,16 @@ public final class FilemanagerProvider : FilemangerProviderType {
       createFileDirectory()
    }
    
-   public func getImage(_ sort: String) throws -> UIImage? {
-      let fileURL = cacheFileURL(sort)
+   public func getImage(_ path: String) throws -> UIImage? {
+      let fileURL = cacheFileURL(path)
       guard fileManager.fileExists(atPath: fileURL.path()) else { return nil }
       
       return UIImage(data: try Data(contentsOf: fileURL))
    }
    
-   public func saveImage(_ sort: String, image: UIImage) throws {
+   public func saveImage(_ path: String, image: UIImage) throws {
       let data = image.jpegData(compressionQuality: 0.3)
-      try data?.write(to: cacheFileURL(sort))
+      try data?.write(to: cacheFileURL(path))
    }
 }
 
@@ -41,14 +41,7 @@ extension FilemanagerProvider {
       try? fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
    }
    
-   private func cacheFileURL(_ sort: String) -> URL {
-      let hashingName = sha256(sort)
-      return directoryURL.appending(path: hashingName, directoryHint: .notDirectory)
-   }
-   
-   private func sha256(_ input: String) -> String {
-      let inputData = Data(input.utf8)
-      let hashedData = SHA256.hash(data: inputData)
-      return hashedData.compactMap { String(format: "%02x", $0) }.joined()
+   private func cacheFileURL(_ path: String) -> URL {
+      return directoryURL.appending(path: path, directoryHint: .notDirectory)
    }
 }
