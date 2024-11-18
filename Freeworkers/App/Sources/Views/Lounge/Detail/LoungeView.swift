@@ -436,6 +436,7 @@ fileprivate struct LoungeMainDMListView : View {
                      HStack {
                         FWImage(imagePath: opponent.profileImage ?? "/")
                            .frame(width: 20.0, height: 20.0)
+                           .clipShape(RoundedRectangle(cornerRadius: 5.0))
                         Spacer.width(15.0)
                         Text(opponent.nickname)
                            .font(.fwRegular)
