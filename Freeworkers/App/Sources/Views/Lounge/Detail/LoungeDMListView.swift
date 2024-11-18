@@ -62,6 +62,7 @@ struct LoungeDMListView : View {
       }
       .frame(height: 80.0)
       .frame(maxWidth: .infinity)
+      .scrollIndicators(.hidden)
       .padding()
    }
    
@@ -77,11 +78,7 @@ struct LoungeDMListView : View {
                      .frame(width: 40.0, height: 40.0)
                      .clipShape(RoundedRectangle(cornerRadius: 10.0))
                 
-                  if dm.unreads != 0 {
-                     Spacer()
-                  } else {
-                     Spacer.width(20.0)
-                  }
+                  Spacer.width(20.0)
                   
                   VStack(alignment : .leading, spacing: 5.0) {
                      Text(dm.dmViewItem.opponent.nickname)
