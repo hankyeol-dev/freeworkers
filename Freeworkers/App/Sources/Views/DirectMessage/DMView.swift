@@ -4,6 +4,8 @@ import SwiftUI
 
 struct DMView : View {
    @EnvironmentObject var diContainer : DIContainer
+   @EnvironmentObject var envContainer : EnvironmentContainer
+   
    @StateObject var viewModel : DMViewModel
    @FocusState private var chatFocus : Bool
       
@@ -25,7 +27,7 @@ struct DMView : View {
          }
       }
       .task {
-         if !diContainer.hideTab { diContainer.toggleTab() }
+         if !envContainer.hideTab { envContainer.toggleTab() }
          viewModel.send(action: .didLoad)
       }
       .onDisappear {

@@ -6,6 +6,8 @@ import FreeworkersDBKit
 
 struct LoungeView : View {
    @EnvironmentObject var diContainer : DIContainer
+   @EnvironmentObject var envContainer : EnvironmentContainer
+   
    @StateObject var viewModel : LoungeViewModel
    
    var body: some View {
@@ -47,9 +49,7 @@ struct LoungeView : View {
             }
          }
          Spacer()
-         if !diContainer.hideTab {
-            loungeTabBar
-         }
+         if !envContainer.hideTab { loungeTabBar }
       }
    }
    
@@ -83,6 +83,8 @@ struct LoungeView : View {
 
 fileprivate struct LoungeMainView : View {
    @EnvironmentObject var diContainer : DIContainer
+   @EnvironmentObject var envContainer : EnvironmentContainer
+   
    @ObservedObject var viewModel : LoungeViewModel
    
    var body: some View {
@@ -159,7 +161,7 @@ fileprivate struct LoungeMainView : View {
             RoutingView(destination: destination)
          }
          .onAppear {
-            if diContainer.hideTab { diContainer.toggleTab() }
+            if envContainer.hideTab { envContainer.toggleTab() }
             viewModel.send(action: .fetchLounge)
          }
       }
@@ -186,6 +188,7 @@ fileprivate struct LoungeMainView : View {
                .frame(width: 25.0, height: 25.0)
                .clipShape(Circle())
                .onTapGesture {
+                  envContainer.toggleTab()
                   viewModel.send(action: .pushToProfile(userId: meViewItem.userId))
                }
          }
@@ -219,6 +222,7 @@ fileprivate struct LoungeMainView : View {
                      .padding(.vertical, 5.0)
                      .onTapGesture {
                         viewModel.send(action: .findChannelButtonTapped)
+                        envContainer.toggleTab()
                         viewModel.send(
                            action: .pushToChannel(channelTitle: channel.channelName,
                                                   channelId: channel.channelId)
@@ -318,6 +322,7 @@ fileprivate struct LoungeSideMenu : View {
 }
 
 fileprivate struct LoungeChannelListView : View {
+   @EnvironmentObject var envContainer : EnvironmentContainer
    @ObservedObject fileprivate var viewModel : LoungeViewModel
    
    var body: some View {
@@ -360,6 +365,7 @@ fileprivate struct LoungeChannelListView : View {
                         .padding(.vertical, 5.0)
                      }
                      .onTapGesture {
+                        envContainer.toggleTab()
                         viewModel.send(
                            action: .pushToChannel(channelTitle: channel[index].channelName,
                                                   channelId: channel[index].channelId)
@@ -420,6 +426,7 @@ fileprivate struct LoungeChannelCreateView : View {
 }
 
 fileprivate struct LoungeMainDMListView : View {
+   @EnvironmentObject var envContainer : EnvironmentContainer
    @ObservedObject fileprivate var viewModel : LoungeViewModel
    
    var body: some View {
@@ -458,6 +465,7 @@ fileprivate struct LoungeMainDMListView : View {
                      .padding(.vertical, 5.0)
                   }
                   .onTapGesture {
+                     envContainer.toggleTab()
                      viewModel.send(action: .pushToDM(dmItem: dms[index]))
                   }
                }

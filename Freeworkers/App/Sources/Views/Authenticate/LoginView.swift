@@ -8,29 +8,51 @@ struct LoginView : View {
    @StateObject var viewModel : ViewModel
 
    var body: some View {
-      VStack {
-         Spacer()
-         Text("로그인이나 회원가입을 해보자구요~")
-            .font(.fwT1)
-         Spacer()
-         FWRoundedButton(title: "Freeworkers 시작하기") {
-            viewModel.send(action: .displayLoginSheet)
+      ZStack {
+         Image(.main)
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(minWidth: 0, maxWidth: .infinity)
+            .edgesIgnoringSafeArea(.all)
+         VStack {
+            Spacer()
+            FWRoundedButton(title: "Freeworkers 시작하기") {
+               viewModel.send(action: .displayLoginSheet)
+            }
+            Spacer.height(50.0)
          }
-         Spacer.height(50.0)
       }
       .sheet(item: $viewModel.sheetConfig) { config in
          switch config {
 
          case .loginSheet:
             VStack(alignment : .center, spacing: 12.0) {
-               SignInWithAppleButton(.signIn) { request in
-                  // 1. request 할 정보를 지정해준다.
-                  request.requestedScopes = [.fullName, .email]
-               } onCompletion: { result in
-                  viewModel.send(action: .loginWithApple(result: result))
+               ZStack {
+                  SignInWithAppleButton(.signIn) { request in
+                     // 1. request 할 정보를 지정해준다.
+                     request.requestedScopes = [.fullName, .email]
+                  } onCompletion: { result in
+                     viewModel.send(action: .loginWithApple(result: result))
+                  }
+                  .frame(width : 345.0, height: 44.0)
+
+                  Button {} label: {
+                     RoundedRectangle(cornerRadius: 8.0, style: .continuous)
+                        .fill(.black)
+                        .frame(width: 345.0, height: 44.0)
+                        .overlay {
+                           HStack(spacing: 10.0) {
+                              Image(systemName: "apple.logo")
+                                 .foregroundStyle(.white)
+                              Text("애플로 시작하기")
+                                 .foregroundStyle(.white)
+                                 .font(.fwT2)
+                           }
+                        }
+                  }
+                  .allowsHitTesting(false)
                }
-               .frame(height: 44.0)
-               .padding(.horizontal, 8.0)
+               .padding(.horizontal, 15.0)
                
                FWRoundedButton(
                   title: "이메일로 계속하기",
@@ -228,6 +250,7 @@ extension LoginView.ViewModel {
       loginToast = .error(message: message, duration: 1.5)
    }
    
+   @MainActor
    fileprivate func loginWithApple(_ result: Result<ASAuthorization, Error>) async {
       if case let .success(auth) = result {
          await diContainer.services.authService.loginWithApple(authorization: auth)

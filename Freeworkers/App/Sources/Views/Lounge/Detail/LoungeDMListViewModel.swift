@@ -30,7 +30,6 @@ final class LoungeDMListViewModel : ViewModelType {
          Task { await fetchLounge() }
          
       case let .pushToDM(user):
-         diContainer.toggleTab()
          diContainer.navigator.push(to: .dm(username: user.nickname,
                                             userId: user.user_id,
                                             loungeId: loungeId))
