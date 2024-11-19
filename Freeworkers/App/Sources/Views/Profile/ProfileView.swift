@@ -103,9 +103,9 @@ struct ProfileView : View {
                      }
                   } tapAction: { }.padding(.vertical, -5.0)
                   
-                  ProfileBannerView(title: "로그아웃") { Text("") } tapAction: {
+                  ProfileBannerView(title: "로그아웃", background: .black) { Text("") } tapAction: {
                      
-                  }
+                  }.foregroundStyle(Color.error)
                   
                   Spacer()
                }

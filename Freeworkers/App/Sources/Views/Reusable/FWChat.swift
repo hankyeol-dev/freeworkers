@@ -8,6 +8,9 @@ struct FWChat : View {
    private var imageTapHandler : (Int) -> Void
    private var profileTapHandler : (Chat) -> Void
 
+   @State private var isTruncated : Bool = false
+   @State private var isTappedExpand : Bool = false
+   
    init(chat: Chat,
         imageTapHandler : @escaping (Int) -> Void,
         profileTapHandler : @escaping (Chat) -> Void
@@ -68,13 +71,33 @@ struct FWChat : View {
          }
          
          if !chat.content.isEmpty {
-            Text(chat.content)
-               .font(.fwRegular)
-               .padding(.horizontal, 12.0)
-               .padding(.vertical, 10.0)
-               .foregroundColor(chat.me ? .white : .black)
-               .background(chat.me ? .black : Color.bg)
-               .clipShape(RoundedRectangle(cornerRadius: 10.0))
+            VStack(alignment: .leading,  spacing: 5.0) {
+               Text(chat.content)
+                  .font(.fwRegular)
+                  .padding(.horizontal, 12.0)
+                  .padding(.vertical, 10.0)
+                  .lineLimit(isTappedExpand ? nil : 3)
+                  .foregroundColor(chat.me ? .white : .black)
+                  .background(GeometryReader { geometry in
+                     chat.me ? Color.black.onAppear {
+                        estimateTruncation(geometry)
+                     } : Color.bg.onAppear {
+                        estimateTruncation(geometry)
+                     }
+                  })
+               if isTruncated {
+                  Button {
+                     isTappedExpand.toggle()
+                  } label: {
+                     Text(isTappedExpand ? "줄여서 보기" : "전체 확인하기")
+                        .font(.fwCaption)
+                        .foregroundStyle(Color.primary)
+                        .padding(.horizontal, 12.0)
+                        .padding(.bottom, 10.0)
+                  }
+               }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 10.0))
          }
          
          if !chat.files.isEmpty {
@@ -157,6 +180,21 @@ struct FWChat : View {
             }
          }
          .frame(width: maxWidth + 20)
+      }
+   }
+}
+
+extension FWChat {
+   private func estimateTruncation(_ geometry : GeometryProxy) {
+      let text = chat.content
+      if !text.isEmpty {
+         let total = text.boundingRect(
+            with: .init(width: geometry.size.width, height: .greatestFiniteMagnitude),
+            options: .usesLineFragmentOrigin,
+            context: nil)
+         if total.size.height > geometry.size.height {
+            isTruncated = true
+         }
       }
    }
 }
