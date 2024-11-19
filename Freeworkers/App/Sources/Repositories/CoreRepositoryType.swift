@@ -24,16 +24,10 @@ extension CoreRepositoryType {
          if isRefresh {
             return await request(router: router, of: of)
          } else {
-            await dummyLogin()
-            return await request(router: router, of: of)
-//            await logout()
-//            return .failure(.error(message: .E00))
+            await logout()
+            return .failure(.error(message: .E00))
          }
       } 
-//      catch NetworkErrors.error(message: .E06) {
-//         await dummyLogin()
-//         return await request(router: router, of: of)
-//      } 
       catch {
          return .failure(error as? NetworkErrors ?? NetworkErrors.error(message: .E00))
       }
@@ -65,3 +59,8 @@ extension CoreRepositoryType {
       }
    }
 }
+
+/**
+ await dummyLogin()
+ return await request(router: router, of: of)
+ */

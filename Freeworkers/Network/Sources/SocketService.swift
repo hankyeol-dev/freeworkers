@@ -13,8 +13,6 @@ public final actor SocketService {
 }
 
 extension SocketService {
-   /// channel -> channelId
-   /// dm -> dm roomId
    public func connect(_ socketEndpoint : SocketEndpointProtocol, dataHandler : @escaping(Data) -> Void) {
       guard let url = URL(string: socketEndpoint.baseURL) else { return }
       socketManager = .init(socketURL: url, config: [.compress])
