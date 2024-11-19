@@ -91,17 +91,14 @@ final class LoungeViewModel : ViewModelType {
       case .createChannel:
          Task { await createChannel() }
       case let .pushToProfile(userId):
-         diContainer.toggleTab()
          diContainer.navigator.push(to: .profile(userId: userId))
       case let .pushToChannel(channelTitle, channelId):
-         diContainer.toggleTab()
          diContainer.navigator.push(
             to: .channel(channelTitle: channelTitle,
                          channelId: channelId,
                          loungeId: loungeId)
          )
       case let .pushToDM(dmItem):
-         diContainer.toggleTab()
          diContainer.navigator.push(
             to: .dm(username: dmItem.dmViewItem.opponent.nickname,
                     userId: dmItem.dmViewItem.opponent.user_id,

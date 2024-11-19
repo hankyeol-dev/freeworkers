@@ -67,7 +67,7 @@ public extension EndpointProtocol {
       if let files {
          files.forEach { file in
             dataSet.appendString("--\(boundary)\(crlf)")
-            dataSet.appendString("Content-Disposition: form-data; name=\"\(fileKey)\"; filename=\"file.jpeg\"\(crlf)")
+            dataSet.appendString("Content-Disposition: form-data; name=\"\(fileKey)\"; filename=\"\(Int(Date().timeIntervalSince1970)).jpeg\"\(crlf)")
             dataSet.appendString("Content-Type: image/jpeg\(crlf)\(crlf)")
             dataSet.append(file)
             dataSet.appendString("\(crlf)")

@@ -4,6 +4,8 @@ import SwiftUI
 
 struct LoungeDMListView : View {
    @EnvironmentObject var diContainer : DIContainer
+   @EnvironmentObject var envContainer : EnvironmentContainer
+   
    @StateObject var viewModel : LoungeDMListViewModel
    
    var body: some View {
@@ -17,7 +19,7 @@ struct LoungeDMListView : View {
          }
          .displayFWToastView(toast: $viewModel.toastConfig)
          .task {
-            if diContainer.hideTab { diContainer.toggleTab() }
+            if envContainer.hideTab { envContainer.toggleTab() }
             viewModel.send(action: .didLoad)
          }
          .navigationDestination(for: NavigationDestination.self) { destination in
@@ -55,6 +57,7 @@ struct LoungeDMListView : View {
                .padding(.horizontal, 5.0)
                .frame(width: 70.0)
                .onTapGesture {
+                  envContainer.toggleTab()
                   viewModel.send(action: .pushToDM(user: members[index]))
                }
             }
