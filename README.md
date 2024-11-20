@@ -85,7 +85,7 @@
 
 ### 1. Tuist를 이용한 ImageKit, NetworkKit, DatabaseKit 역할 분리
 
-1️⃣ 고민한 부분
+> 1️⃣ 고민한 부분
 
 해당 프로젝트에서는,
 - View를 그리고 View를 업데이트하는 상태를 관리하는 역할을 하는 App과
@@ -96,7 +96,7 @@
 - 구분된 서비스 모듈에서는 App 모듈이 어떻게 구현될지에 상관하지 않고, 각자의 역할을 수행할 수 있는 기능 구현만 신경쓰도록 구분짓고 싶었습니다.
 <br />
 
-2️⃣ 고민을 풀어간 방식 1 - 모듈 구분
+> 2️⃣ 고민을 풀어간 방식 1 - 모듈 구분
 
 - **역할별 모듈을 구분하고 모듈간 의존성, 필요한 외부 모듈 주입을 위해 Tuist를 이용**했습니다. Tuist CLI로 프로젝트 설정 파일을 구성하고, 각 모듈의 Project 파일에서 Swift 객체로 모듈별 설정을 편하게 조정할 수 있었습니다.
 - 역할에 따라 크게 **View와 View에 필요한 상태를 관리하는 ViewModel의 로직을 담고 있는 App Target**과 **데이터를 불러오고 저장하고 필요한 형태로 가공하는 Framework Target**으로 구분지었습니다.
@@ -109,7 +109,7 @@
 
 <br />
 
-2️⃣ 고민을 풀어간 방식 2 - Framework 구현과 모듈 의존성 설정
+> 2️⃣ 고민을 풀어간 방식 2 - Framework 구현과 모듈 의존성 설정
 
 Network Framework는 HTTP/Socket 기반 네트워크 통신을 위해 아래 기능을 구현했습니다.
 - 서버 엔드포인트별로 각각의 URLRequest를 맵핑해주는 [EndpointProtocol](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/Protocols/EndpointProtocol.swift)
@@ -134,7 +134,7 @@ App 모듈이 세 개의 Framework 모듈에 의존성을 가지게 설정했습
 - 역할별로 모듈을 분리하고, 필요한 곳에서 모듈의 구현 방식은 신경쓰지 않고, 모듈이 제공하는 기능을 이용해 App 모듈만의 로직을 구현할 수 있었습니다.
 <br />
 
-3️⃣ 고민 과정에서 아쉬웠던 점
+> 3️⃣ 고민 과정에서 아쉬웠던 점
 
 App 모듈이 세 개의 Framework에 의존성을 가지고 있기 때문에, Framework 구현 범위를 넘어선 로직 설계가 필요할 수 있다는 생각이 들었습니다.
 역으로 App 모듈에 필요한 기능을 반영하기 위해 Framework 모듈에 추가 작업이 필요하고, 유지 보수 측면에서 의도하지 않은 번거로움이 생길 수 있을 것 같았습니다. <br />
@@ -147,33 +147,115 @@ App 모듈이 세 개의 Framework에 의존성을 가지고 있기 때문에, F
 
 ### 2. Socket, 로컬 데이터베이스를 이용한 실시간 채팅 구현
 
-1️⃣ 고민한 부분
+> **1️⃣ 고민한 부분**
 
-- 실시간 채팅이 주 서비스였고, 서버에서 socket 통신을 할 준비가 되어 있었다. socket을 연결하고, 끊어주는 시점
-- 소캣 통신 중에 받아온 데이터를 다음번 입장에서도 보여주기 위해서는?
-- 채팅 뷰에서는 기존 채팅 서비스의 어떤 레이아웃을 효과적으로 보여줄 수 있는지?
+프로젝트의 핵심 서비스는 채널/유저간 실시간 채팅입니다. 실시간 채팅을 위해 서버에 Socket 통신이 준비되어 있었고, 앱 단에서 Socket을 통한 연결/차단/송·수신 이벤트를 핸들링해야 했습니다.
+
+- 어떤 시점에 Socket을 연결하고 끊어야 하는지부터 채팅 데이터를 전송하고 다른 유저가 보낸 내역을 수신하는 체계를 고민했습니다.
+- 이전 채팅 내역은 어떤 방식으로 관리할 것인지도 함께 고민했습니다.
+- 채팅 뷰에서는 텍스트/이미지 채팅 데이터를 어떤 레이아웃으로 보여줄 것인지를 고려했습니다.
 <br />
 
-2️⃣ 고민을 풀어간 방식
+> **2️⃣ 고민을 풀어간 방식 1 - SocketService와 연결 시점 관리**
 
-- socketIO의 on 메서드로 채널/DM 기반의 채팅 방 연결을 열고, 닫고, 메시지를 받는 서비스 객체 구현
-  - 소캣을 닫는 시점 : 앱이 백그라운드에 전환된 경우, 뒤로 나가기를 통해 채팅방을 나간 경우 / 소캣을 닫지 않는 경우 : 같은 채널안에서 채널 설정을 컨트롤 하는 경우  
-- 채팅 방식 (채널)
-  - 채팅을 보내는 경우
-    - 데이터베이스에 저장된 이전 채팅 데이터를 createdAt 기준으로 조회 -> createdAt을 통해 더 불러올 채팅 내역이 있는지 서버에 요청 -> 해당 데이터를 불러와 로컬에 저장 후 소캣 오픈
-    - 채팅 전송 HTTP 요청을 보내고 성공 응답이 오면 로컬 데이터베이스에 저장
-  - 채팅을 받는 경우, 소캣을 통해 전달받은 데이터를 데이터베이스에 저장
-- 채팅 방식 (DM)
-  - DM의 경우, 누구 하나가 먼저 챗을 보내지 않으면 방이 따로 만들어지지 않고, 데이터베이스 레코드도 형성되지 않음
-  - 채팅 전송시에 이전 데이터가 있는지 검증하고, 처음이라면 DM 방을 만들고, 이후에 채널 방식과 동일하게 진행
+Socket 통신을 담당하는 [SocketService 객체](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/SocketService.swift)를 Network Framework 모듈에 구현했습니다. 
+- SocketIO의 `SocketIOClient` 인스턴스로 통신 연결/차단을 제어하고,
+- `.on` 메서드로 특정 채팅 방의 채팅 데이터 수신 이벤트를 연결하는 기능을 구현했습니다.
+- NetworkService와 마찬가지로, Socket 통신을 위한 EndpointProtocol을 만들어 App에서 구조화된 요청 객체를 전달하게 만들었습니다.
+<br />
 
+App에서는 유저가 **채팅 방(채널, DM)에 입장하는 시점에 이전 채팅 내역 존재 여부를 파악한 다음 Socket을 연결**하였습니다.
+- 입장한 방에 이전 채팅 내역이 있거나, 서버에서 추가로 받아와야 하는 읽지 않은 채팅 내역이 있을 경우 **Socket 연결 전에 채팅 데이터 싱크를 먼저 맞추었습니다.** 조회한 데이터를 로컬 데이터베이스에 순서대로 **저장한 다음 `.connect` 함수를 호출해 Socket을 연결**했습니다.
+- 이전 채팅 내역이 없는 새롭게 생성된 채널, DM인 경우에는 **유저가 최초 채팅 데이터를 전송하는 시점에 Socket을 연결**했습니다.
+<br />
+
+Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였는지에 따라 구분**하였습니다.
+- 기본적으로, pop 이벤트가 반영된 뒤로가기 버튼을 터치하여 **채팅 View가 사라지는 시점에 연결을 해제**했습니다. 또한 ScenePhase 환경 변수로 앱이 **background inActive 상태가 된 경우를 감지해 Socket 연결을 해제**했습니다.
+- 채팅 중, 이미지 파일 첨부를 위해 화면이 fullCover 되거나, 이미지 뷰어가 overlap 되는 경우는 **채팅 View가 가리더라도 채팅 방을 이탈한 경우가 아니기 때문에 연결을 해제하지 않았습니다.**
+<br />
+
+> **2️⃣ 고민을 풀어간 방식 2 - 채팅 데이터 송·수신 및 내역 저장**
+
+유저가 채팅 방에 입장하면 가장 먼저 해당 채팅 방의 이전 채팅 내역을 조회했습니다.
+- 채팅 방에 입장할 때마다 이전 채팅 내역을 서버에 요청하면 네트워크 리소스가 과하게 소모된다고 판단했습니다. 그래서, 로컬 데이터베이스에 채팅 모델을 정의하여 채팅 방별로 이전 내역을 저장하였습니다.
+- 데이터베이스에 가장 마지막으로 저장된 채팅 데이터의 `createdAt` 값으로 서버에 추가로 전송된 채팅 내역을 조회했습니다. 추가된 채팅 내역이 서버에 있다면 해당 데이터를 로컬 데이터베이스에 추가로 저장하여 서버와 싱크를 맞추었습니다.
+<br />
+
+유저의 채팅 전송은 HTTP 요청으로 처리하였습니다.
+- 채팅 데이터(body)가 정상적인 요청 객체로 들어왔는지, 서버에 정상적으로 저장되었는지 등을 고려하여 성공 응답을 받았을 경우에만 Socket 채널을 통해 채팅 데이터가 전달되었습니다. 
+- 서버 성공 응답을 받은 경우에만 로컬 데이터베이스에 전송 데이터를 저장하였습니다. 실패 응답을 받았을 때는 Error Toast를 띄우고 TextView, ImageSelector의 상태를 따로 변경하지 않았습니다.
+<details>
+  <summary>채팅 전송 코드</summary>
+
+##### SendDM 코드  
+```swift
+ private func sendDM() async {
+   ...
+   // 채팅 전송 객체
+   let input : ChatInputType = .init(
+        loungeId: loungeId,
+        roomId: roomId,
+        chatInput: .init(content: .init(content: chatText), files: photoDatas.map({ $0.1 })))
+           
+    // 채팅 전송 요청
+    await diContainer.services.dmService.sendDM(input: input)
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] errors in
+            // 채팅 전송에 실패한 경우 -> Toast View Display
+            if case let .failure(error) = errors {
+                self?.toastConfig = .error(message: error.errorMessage, duration: 1.0)
+            }
+        } receiveValue: { chat in
+            // 채팅 전송에 성공한 경우 -> 채팅 바, 채팅 이미지 리셋 및 데이터 저장
+            Task { [weak self] in
+                self?.validateResetView()
+                await self?.saveMyChat(chat.toSaveRequest)
+            }
+        }
+        .store(in: &store)
+ }
+```
+</details>
+<br />
+
+`.receive` 메서드로 Socket을 통해 채팅 데이터를 수신하였습니다.
+- 유저 자신이 전송한 채팅 데이터도 Socket을 통해 전달받기 때문에, 전송 요청이 성공한 시점에 데이터베이스에 채팅 레코드가 쌓였다면 Socket을 통해 전달받는 동일 데이터는 저장하지 않도록 처리했습니다.
+- 다른 유저가 전송한 채팅은 바로 데이터베이스에 저장하고 View가 업데이트 될 수 있도록 처리했습니다.
+
+<details>
+  <summary>수신한 채팅 데이터 저장 코드</summary>
+
+##### ReceivedChat  
+```swift
+ // 내가 보낸 채팅을 저장하는 로직
+ private func saveMyChat(_ chat : ChatSaveRequestType) async {
+    if validateIsNotSaved(chat.chatId) { // 전송 시점에 이미 저장되지 않았다면 저장
+        let saved = await diContainer.services.dmService.saveDM(loungeId: loungeId,
+                                                                 chatRequest: chat)
+        chats.append(saved)
+        validateResetView()
+    }
+ }
+       
+ // Socket으로 수신한 채팅 내역이 로컬 데이터베이스 잘 저장되었다면 View 업데이트
+ private func saveReceivedChat(_ chat : ChatSaveRequestType) async {
+    if let saved = await diContainer.services.dmService.saveReceivedDM(loungeId: loungeId, chatRequest: chat) {
+        chats.append(saved)
+        validateResetView()
+    }
+ }
+```
+</details>
+<br />
+
+> **2️⃣ 고민을 풀어간 방식 3 - 채팅 UI, 레이아웃 구성**
  - 채팅 뷰를 구현하기 위해서
    - 특정 높이까지 늘어나는 TextView 커스텀 -> 채팅바로 활용
    - 채팅뷰에서는 내가보낸, 다른 유저가 보낸 채팅을 구분하여 레이아웃을 변경, 특정 길이 이상인 경우 접어서/펼쳐서 확인
    - 채팅을 통해 보내진 이미지 파일은 이미지 뷰어를 통해 큰 화면으로 확인할 수 있도록
 <br />
 
-3️⃣ 고민 과정에서 아쉬웠던 점
+> 3️⃣ 고민 과정에서 아쉬웠던 점
 
 - 네트워크 연결이 힘든 곳으로 전환되었을 때를 고려하는 로직 / 뷰를 추가적으로 고려해보고자 한다.
 
