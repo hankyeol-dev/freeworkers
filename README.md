@@ -42,7 +42,7 @@
 
 ![freeworkers-architecture4@](https://github.com/user-attachments/assets/a765957b-9ada-4fbb-9aee-53f95bb1e23c)
 
-> - [DIContainer](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/App/Sources/Dependencies/DIContainer.swift)를 EnvironmentObject로 설정하여 앱 전역의 ViewModel, View에 필요한 서비스 객체를 주입했습니다.
+> [DIContainer](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/App/Sources/Dependencies/DIContainer.swift)를 EnvironmentObject로 설정하여 앱 전역의 ViewModel, View에 필요한 서비스 객체를 주입했습니다.
 >   - DIContainer에 각각의 Service 구현체를 직접 주입하지 않고, ViewModel에서 사용할 Usecase 단위로 ServiceType 프로토콜을 분리하여 모든 서비스 객체의 의존성을 가지는 통합 Service 객체를 주입하였습니다.
 >   - Service 객체도 RepositoryType 프로토콜을 타입으로 주입하여 프로토콜에 명세한 기능을 활용했습니다.
 >   - ViewModel은 필요한 데이터를 DIContainer의 Service가 제공해주는 기능으로 처리하여 뷰에 필요한 상태로 업데이트 했습니다.
@@ -50,32 +50,34 @@
 <br />
 
 **Tuist**
-> - App 모듈이 Framework 타겟으로 만들어진 NetworkService, DatabaseService, ImageProvider 모듈에 의존성을 가지는 형태로 프로젝트를 구성했습니다.
+> App 모듈이 Framework 타겟으로 만들어진 NetworkService, DatabaseService, ImageProvider 모듈에 의존성을 가지는 형태로 프로젝트를 구성했습니다.
 > - 네트워크 통신, 데이터베이스 모델링 및 관리 로직 구현, 이미지 캐싱 로직을 각 모듈이 구현하고, App 타겟에서 프레임워크 구현부를 신경쓰지 않고 기능을 이용하도록 역할을 분리시켰습니다.
 <br />
 
 **SwiftUI, Combine**
-> - SwiftUI로 반복 활용되는 재사용 컴포넌트를 만들고, 채팅 뷰에 필요한 레이아웃을 구현했습니다.
->   - 채팅 UI와 채팅 중 공유된 이미지 파일을 모아보는 이미지 뷰어를 구현했습니다.
->   - ScenePhase 환경 변수와 View 생명주기 메서드로 채팅 뷰가 화면에 사라지는 시점을 고려해 Socket 연결을 제어했습니다.
-> - UseCase별 서비스 로직 처리 결과(성공, 에러 케이스)를 Combine Future Publisher로 핸들링 했습니다.
+> SwiftUI로 반복 활용되는 재사용 컴포넌트를 만들고, 채팅 뷰에 필요한 레이아웃을 구현했습니다.
+> - 채팅 UI와 채팅 중 공유된 이미지 파일을 모아보는 이미지 뷰어를 구현했습니다.
+> - ScenePhase 환경 변수와 View 생명주기 메서드로 채팅 뷰가 화면에 사라지는 시점을 고려해 Socket 연결을 제어했습니다.
+> 
+> UseCase별 서비스 로직 처리 결과(성공, 에러 케이스)를 Combine Future Publisher로 핸들링 했습니다.
 <br />
 
 **URLSession, SocketIO, Swift Concurrency**
-> - Network 모듈에 URLSession Async DataTask를 활용하는 HTTP 통신 서비스 객체를 구현했습니다. EndpointProtocol을 구현하여 엔드포인트마다 서로다른 URLRequest가 반환되도록 설정했습니다.
+> Network 모듈에 URLSession Async DataTask를 활용하는 HTTP 통신 서비스 객체를 구현했습니다.
+> - EndpointProtocol을 구현하여 엔드포인트마다 서로다른 URLRequest가 반환되도록 설정했습니다.
 > - 동일 모듈에 Socket 연결, 해제, 데이터 통신 기능을 반영한 SocketService 객체를 구현했습니다.
 >   - SocketIO의 on 메서드로 Socket 채널을 활성화하고, 상대방이 보낸 채팅을 실시간으로 받아오는 이벤트를 처리했습니다. SocketService도 EndpointProtocol 기반에서 채널/DM 채팅을 구분시켰습니다.
 > - Async-Await, Task 블록으로 모든 비동기 태스크의 동시성을 관리하고, AccessToken/ImageChache/SocketClient와 같이 여러 스레드에서 동시 접근이 가능한 공유 자원을 스레드 세이프하게 활용하기 위해 Actor를 활용했습니다.
 <br />
 
 **SwiftData**
-> - Database 모듈에 SwiftData 기반으로 채팅 데이터 모델을 구성하고 저장/조회/필터링 기능을 구현했습니다.
+> Database 모듈에 SwiftData 기반으로 채팅 데이터 모델을 구성하고 저장/조회/필터링 기능을 구현했습니다.
 <br />
 
 **Filemanager, NSCache**
-> - 서버 통신으로 받아온 이미지 데이터를 메모리, 디스크 캐시로 관리하는 ImageProvider 객체를 구현했습니다.
->   - 채팅 뷰의 스크롤 이벤트나 탭 전환등으로 여러 이미지를 보여줘야 하는 경우마다 불필요한 네트워크 통신 자원을 사용하지 않기 위해 이미지 캐싱을 구현했습니다.
->   - 다른 채팅 서비스 사용 경험을 기반으로 메모리 캐시는 최대 10분, 디스크 캐시는 최대 60일의 캐싱 전략을 반영했습니다.
+> 서버 통신으로 받아온 이미지 데이터를 메모리, 디스크 캐시로 관리하는 ImageProvider 객체를 구현했습니다.
+> - 채팅 뷰의 스크롤 이벤트나 탭 전환등으로 여러 이미지를 보여줘야 하는 경우마다 불필요한 네트워크 통신 자원을 사용하지 않기 위해 이미지 캐싱을 구현했습니다.
+> - 다른 채팅 서비스 사용 경험을 기반으로 메모리 캐시는 최대 10분, 디스크 캐시는 최대 60일의 캐싱 전략을 반영했습니다.
 
 <br />
 
@@ -85,19 +87,61 @@
 
 1️⃣ 고민한 부분
 
-- 모듈로 나누어 APP과의 역할을 분리한 이유는 ~~을 하고 싶었다.
+해당 프로젝트에서는,
+- View를 그리고 View를 업데이트하는 상태를 관리하는 역할을 하는 App과
+- 데이터를 서버에서 불러오고 데이터베이스 저장하는 등의 역할을 하는 Service 객체 구현을 분리시키고 싶었습니다.
 <br />
 
-2️⃣ 고민을 풀어간 방식
+- App 모듈에서는 서비스 구현체를 불러와 내부 구현 방식을 신경쓰지 않고 명세된 기능만 활용하여 앱을 동작시키는 로직을 처리하길 원했습니다.
+- 구분된 서비스 모듈에서는 App 모듈이 어떻게 구현될지에 상관하지 않고, 각자의 역할을 수행할 수 있는 기능 구현만 신경쓰도록 구분짓고 싶었습니다.
+<br />
 
-- 각 모듈에 대한 설명, repository, service에서 각각 어떤 식으로 활용했는지
-- 어떤식으로 의존성을 가지게 되는지
+2️⃣ 고민을 풀어간 방식 1 - 모듈 구분
+
+- **역할별 모듈을 구분하고 모듈간 의존성, 필요한 외부 모듈 주입을 위해 Tuist를 이용**했습니다. Tuist CLI로 프로젝트 설정 파일을 구성하고, 각 모듈의 Project 파일에서 Swift 객체로 모듈별 설정을 편하게 조정할 수 있었습니다.
+- 역할에 따라 크게 **View와 View에 필요한 상태를 관리하는 ViewModel의 로직을 담고 있는 App Target**과 **데이터를 불러오고 저장하고 필요한 형태로 가공하는 Framework Target**으로 구분지었습니다.
+- Framework Target은 다시 역할별로 아래와 같이 모듈을 나누었습니다.
+  - HTTP/Socket 네트워크 통신을 담당하는 NetworkService Framework
+  - 채팅 내역을 모델링하고 채팅 데이터를 저장/조회/필터링하는 Database Framework
+  - 서버에서 받아온 이미지를 메모리/디스크 캐시로 관리하는 ImageCache Framework
+  <br />
+  <img width="500" src="https://github.com/user-attachments/assets/68781206-89eb-4635-b2f7-1ecd0e65fd6d" />
+
+<br />
+
+2️⃣ 고민을 풀어간 방식 2 - Framework 구현과 모듈 의존성 설정
+
+Network Framework는 HTTP/Socket 기반 네트워크 통신을 위해 아래 기능을 구현했습니다.
+- 서버 엔드포인트별로 각각의 URLRequest를 맵핑해주는 [EndpointProtocol](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/Protocols/EndpointProtocol.swift)
+- Endpoint 객체를 이용해 서버와 HTTP 통신을 하고 응답을 반환하는 [async request 함수](https://github.com/hankyeol-dev/freeworkers/blob/1262bc0a75832af7ab02b0f9f9ddb1a344534608/Freeworkers/Network/Sources/NetworkService.swift#L8)
+- 에러 응답을 특정 코드로 반환해주는 Error 객체
+- Socket 통신을 위한 EndpointProtocol을 구분짓고, SocketIO API를 활용해 [Socket 연결/종료/수신 이벤트를 처리하는 객체](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/SocketService.swift)를 구현했습니다.
+<br />
+
+Database Framework는 SwiftData 프레임워크를 기반으로
+- 채팅 데이터 저장을 위한 Database Model을 설정하고
+- Database Model Container에 접근하여 데이터 저장/조회/필터링 하는 Model Context를 다루는 기능을 구현했습니다.
+<br />
+
+ImageCache Framework는 FileManager, NSCache를 다루고 두 객체로 이미지 캐싱을 처리하는 기능을 구현했습니다.
+- 특정 만료 시점까지 메모리상의 캐시를 이용해 이미지 데이터를 저장하고 조회하는 MemoryCacheProvider
+- 특정 만료 시점까지 샌드박스의 캐시 디스크 저장소를 이용해 데이터를 저장하고 조회하는 FilemanagerProvider
+- Memory, Filemanager Cache를 이용하여 서버에서 받아온 이미지를 데이터로 변환해 저장하고, 앱에서 이미지가 필요할 때 불필요한 네트워킹 없이 이미지로 변환하는 기능이 구현된 ImageProvider
+<br />
+
+App 모듈이 세 개의 Framework 모듈에 의존성을 가지게 설정했습니다. App의 각 Repository에서 View 업데이트에 필요한 데이터 처리를 위해 Framework 모듈을 불러와 내부에 정의된 기능을 활용하는 방식으로 역할을 나누었습니다.
+
+- 역할별로 모듈을 분리하고, 필요한 곳에서 모듈의 구현 방식은 신경쓰지 않고, 모듈이 제공하는 기능을 이용해 App 모듈만의 로직을 구현할 수 있었습니다.
 <br />
 
 3️⃣ 고민 과정에서 아쉬웠던 점
 
-- App 타겟 역시 Feature 단위로 모듈을 구분해볼 수 있지 않았을지
-- ImageKit에서 NetworkKit 의존성을 가지는데, 이런 프레임워크 타겟들의 의존성을 극복시키는 방법은 무엇이 있을지
+App 모듈이 세 개의 Framework에 의존성을 가지고 있기 때문에, Framework 구현 범위를 넘어선 로직 설계가 필요할 수 있다는 생각이 들었습니다.
+역으로 App 모듈에 필요한 기능을 반영하기 위해 Framework 모듈에 추가 작업이 필요하고, 유지 보수 측면에서 의도하지 않은 번거로움이 생길 수 있을 것 같았습니다. <br />
+
+마찬가지로, App 모듈이 세 개의 Framework 구현체에 의존성을 가지는 부분도 아쉬웠습니다. DIContainer처럼 Framework 기능을 추상화한 프로토콜 타입을 통합적으로 가지는 상위 모듈이 있었다면 좋았을 것 같다는 생각을 했습니다. <br />
+
+다음 프로젝트에서는, App Target의 UI Component, Feature, Test 단위로도 모듈을 구분하면서, 프로젝트 설계 단계부터 모듈간 의존성을 고려해보려고 합니다.
 
 <br />
 
