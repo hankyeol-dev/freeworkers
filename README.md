@@ -249,37 +249,125 @@ Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였�
 <br />
 
 > **2️⃣ 고민을 풀어간 방식 3 - 채팅 UI, 레이아웃 구성**
- - 채팅 뷰를 구현하기 위해서
-   - 특정 높이까지 늘어나는 TextView 커스텀 -> 채팅바로 활용
-   - 채팅뷰에서는 내가보낸, 다른 유저가 보낸 채팅을 구분하여 레이아웃을 변경, 특정 길이 이상인 경우 접어서/펼쳐서 확인
-   - 채팅을 통해 보내진 이미지 파일은 이미지 뷰어를 통해 큰 화면으로 확인할 수 있도록
+
+채팅 데이터 전송을 위해 텍스트를 입력하고 이미지 파일을 선택할 수 있는 채팅 바를 구현했습니다.
+- 채팅 텍스트를 입력하는 TextView는 UITextView를 확장해서 UIViewRepresentable View로 구현했습니다. TextView의 최대 높이를 지정하고, `updateUIView` 메서드 내부에서 유저의 텍스트 입력에 따라 높이가 최대치까지 늘어나도록 설정했습니다. UITextViewDelegate를 채택해 placeholder를 함께 반영했습니다.
+- TextView 상단에는 유저가 PhotosPicker로 선택한 이미지 목록을 볼 수 있는 ThumbnailView를 반영했습니다. PhotosUI의 loadTransferable 메서드로 선택된 이미지를 Data 타입으로 추출하여 채팅 전송에 활용했습니다.
+<details>
+  <summary>채팅 바 UI</summary>
+
+##### ChatBar  
+<img width="330" src="https://github.com/user-attachments/assets/f07341a8-84cd-4425-8e68-9113e90c1dac" />
+</details>
 <br />
 
-> 3️⃣ 고민 과정에서 아쉬웠던 점
+채팅 뷰에서는 내가 보낸 채팅, 다른 유저가 보낸 채팅을 구분하였고, 채팅 텍스트 길이를 계산한 컴포넌트를 구현했습니다.
+- 내가 보낸 채팅은 유저 프로필 UI를 제외하고 Trailing에 정렬되도록 설정했습니다. 다른 유저가 보낸 채팅은 유저 프로필을 보여주고, Leading으로 정렬시켰습니다.
+- `GeometryProxy` 속성을 이용하여 채팅 텍스트가 특정 width를 초과하는지 연산하여 한 번에 최대 3줄까지 보여지는 채팅 뷰를 구현했습니다. 유저는 '전체 확인하기' 버튼을 통해 채팅 텍스트 전문을 확인할 수 있게 컴포넌트를 구성했습니다.
+<details>
+  <summary>채팅 뷰 - 메시지 UI</summary>
 
-- 네트워크 연결이 힘든 곳으로 전환되었을 때를 고려하는 로직 / 뷰를 추가적으로 고려해보고자 한다.
+##### ChatView - Text
+<img width="330" src="https://github.com/user-attachments/assets/bbb7c978-ee1a-47d2-ab2a-4e189e957e4d" /> <img width="330" src="https://github.com/user-attachments/assets/155d8cca-bbec-48c1-8bd7-24e619b8c5e6" /> 
+</details>
+<br />
+
+이미지 데이터는 LazyHGrid를 이용해 그리드 형태로 최대 3장의 이미지를 보여주었습니다.
+- 최대 5개의 이미지 데이터를 송·수신할 수 있었기 때문에, 추가 이미지는 갯수를 노출시켰습니다. 그리드의 이미지를 터치하면 이미지 뷰어를 띄워 이미지를 정사이즈로 확인할 수 있게 구현했습니다.
+<details>
+  <summary>채팅 뷰 - 이미지 UI</summary>
+
+##### ChatView - Image
+<img width="330" src="https://github.com/user-attachments/assets/c1aba2ac-9685-4dc7-8124-846b2e91d51a" /> <br />
+<img width="330" src="https://github.com/user-attachments/assets/bc2b64fb-1477-427e-9188-b8b117943408" /> 
+</details>
+<br />
+
+> **3️⃣ 고민 과정에서 아쉬웠던 점**
+
+채팅 서비스를 구현하면서 발생할 수 있는 엣지 케이스가 너무 많다는 것을 확인했습니다. 네트워크 연결이 힘든 곳에서 채팅을 전송할 경우 전송 실패 내역을 어떻게 보여줄 것인지, 특정 채팅에 대한 답장은 어떻게 처리할 수 있는지 등을 많이 고려해보게 되었습니다. 한 번에 완성형 채팅 서비스를 구현하기 보다는 유저 시나리오를 설계해보면서 서비스에 우선적으로 필요한 서비스 로직과 뷰를 업데이트 해보고자 합니다.
 
 <br />
 
 ### 3. FileManager Cache Directory, NSCache를 활용한 이미지 캐싱 적용
 
-1️⃣ 고민한 부분
+> **1️⃣ 고민한 부분**
 
-- 앱에서 서버에 저장한 이미지를 불러와 보여주는 경우가 많았음 (채팅 뷰 + 이미지 뷰어, 라운지 유저 목록, 라운지/DM 목록 등)
-- 필요할 때마다 네트워크 요청이 들어가면 불필요한 자원 소모가 발생했음 (스크롤에 따라 메모리 사용이 크게 늘어나느 이미지)
+앱에서 서버에 저장한 이미지를 불러와 보여주는 경우가 많았습니다. (채팅 View의 이미지 그리드, 라운지 설정 View의 유저 프로필 목록 등)
+- 이미지 랜더링이 필요할 때마다 네트워크 요청으로 데이터를 가져오면 불필요한 자원 소모가 발생했습니다.
+- 특히, 채팅 View에서 스크롤에 따라 ChatView를 재사용 하는 경우 별다른 제약이 없다면 계속 네트워크 요청이 들어가 메모리 사용이 급격하게 증가하는 것을 경험했습니다. (스크롤을 할 때마다 메모리 사용량이 우상향)
+
+<img width="450" src="https://private-user-images.githubusercontent.com/121326152/385157148-7618a923-4a45-4b1d-89ac-14c18657ec28.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MzIwNzk2MjksIm5iZiI6MTczMjA3OTMyOSwicGF0aCI6Ii8xMjEzMjYxNTIvMzg1MTU3MTQ4LTc2MThhOTIzLTRhNDUtNGIxZC04OWFjLTE0YzE4NjU3ZWMyOC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQxMTIwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MTEyMFQwNTA4NDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xNDZjYjM1Zjk1NmE1MWE1ZmNlMTA4Y2Y5YWY3NjQxNWE3MmYwNDAxNzhjOWNhMDhkZDAxMDJlY2I5NzlmZTg0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.XMt3KOMDdpajVUi1llWwPXJwrog1YB6Yx7Cw-_iybCM" /> 
 <br />
 
-2️⃣ 고민을 풀어간 방식
+> **2️⃣ 고민을 풀어간 방식**
 
-- 이미지 캐싱 방식 : NSCache를 이용한 Memory 캐싱을 기반으로 FileManager와 같은 디스크 저장소 활용
-  - 네트워크 > 메모리 + 디스크 저장 > 다음에 불러올 때 메모리>디스크>네트워크 순서로 조회
-- 이미지 캐싱 전략 : 메모리 캐싱의 경우 10분, 디스크 캐싱의 경우 60일
+이미지 캐싱을 처리하는 Framework 모듈을 구현하여, 이미지가 필요할 때 메모리/디스크 상의 메모리 저장소를 먼저 확인하도록 만들었습니다.
+- [ImageObject](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Image/Sources/Internal/ImageObject.swift)라는 커스텀 참조 타입을 만들어 이미지 데이터와 보관 완료 시점을 함께 반영하였습니다.
+<br />
+
+NSCache 인스턴스를 기반으로 ImageObject를 관리하는 [MemoryCacheProvider](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Image/Sources/Public/MemoryCacheProvider.swift) Actor 서비스 객체를 만들었습니다. 
+- 이미지 요청에서 동일 이미지를 조회할 때 Tread-safe를 보장시키기 위해 Actor로 구현했습니다.
+- 서버에서 보내주는 정적 Image PathString과 ImageObject를 키-밸류 조합으로 NSCache 인스턴스에 저장하고, 이후 PathString으로 저장한 ImageObject를 조회하는 로직을 구현했습니다.
+- 메모리 캐싱 전략은 ImageObject당 10분의 보관 만료 시점을 가지도록 산정했습니다. MemoryCacheProvider 객체 생성자에서 타이머를 통해 5분 단위로 메모리상에서 만료된 ImageObject를 지우도록 설정했습니다. 채팅이 필요할 때 앱에 들어와 짧은 시간 메모리를 활용할 수 있도록 10분을 산정했습니다.
+  ```swift
+   private func removeEstimatedExpire() { // 메모리에서 만료된 ImageObject를 찾아 삭제하는 로직
+      for key in cacheKeys {
+         guard let imageObject = cache.object(forKey: key) else {
+            cacheKeys.remove(key)
+            return
+         }
+         
+         if imageObject.isExpired {
+            cache.removeObject(forKey: key)
+            cacheKeys.remove(key)
+         }
+      }
+   }
+  ```
+<br />
+
+디스크 캐시는 FileManager의 Cache 전용 디렉토리를 만들어 이미지가 특정 기간동안 저장되도록 구현했습니다.
+- 디스크 캐싱 처리 역시 동시 상태에서 Tread-safe를 보장하기 위해 Actor 기반의 [FilemanagerProvider](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Image/Sources/Public/FilemanagerProvider.swift) 서비스 객체로 구현했습니다.
+- 메모리 캐싱과 동일하게 서버에서 보내준 Image PathString을 디렉토리 접근 URL로 만들어 ImageObject의 이미지 데이터를 저장하였습니다.
+- 다른 채팅 서비스에서 이미지 파일을 최대 30~60일 정도 보관한다는 점을 확인하여, 최대 60일까지 보관하는 캐싱 전략을 채택했습니다. FileManager의 `.modificationDate` 속성을 이용해서 저장한 이미지 데이터의 만료 시점을 계산하고 데이터를 지울 수 있었습니다.
+  ```swift
+   public func removeAllExpired() {
+     ... 
+     let expiredList = urls.filter { url in
+        do {
+          let attribute = try fileManager.attributesOfItem(atPath: url.path())
+          if let expired = attribute[.modificationDate] as? Date { // 특정 url의 이미지 파일 만료 시점이 초과되었는지 확인
+             return expired.timeIntervalSince(Date()) <= 0
+          }
+        } catch {
+          return false
+        }
+
+        return false
+      }
+   
+     for expiredURL in expiredList {
+       try? fileManager.removeItem(at: expiredURL)
+     }
+   }
+  ```
+<br />
+
+최종적인 이미지 캐싱은 ImagePathString을 이용해 메모리 캐시 -> 디스크 캐시 순서로 데이터를 확인하고, 일치하는 데이터를 찾지 못할 경우 서버에 이미지 파일을 요청하는 과정으로 진행했습니다. ([ImageProvider](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Image/Sources/ImageProvider.swift))
+- 서버 요청으로 받아온 이미지 데이터는 메모리, 디스크 캐시 저장소에 저장하여 만료 시점까지 활용했습니다.
+- 메모리 캐시의 만료로 디스크에만 있는 이미지는 다시 메모리 캐시에 임시 저장하여 더 빠르게 데이터 접근이 가능하도록 처리했습니다.
+![freeworkers-imagecache](https://github.com/user-attachments/assets/5c5fd4d2-f620-443f-acb5-a227d47fed7a)
+<br />
+
+이미지 캐시 구현으로 스크롤과 같은 View 이벤트에 따라 메모리 사용이 급격하게 늘어나는 문제를 크게 해소할 수 있었습니다.
+- 위와 같은 채팅방에서 동일한 스크롤 이벤트를 했을 때, 최소 8배 적게 메모리 사용을 줄일 수 있었습니다.
+<img width="450" src="https://private-user-images.githubusercontent.com/121326152/385157169-117334ce-b693-475c-b842-905dbd6a36aa.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MzIwODM1NTIsIm5iZiI6MTczMjA4MzI1MiwicGF0aCI6Ii8xMjEzMjYxNTIvMzg1MTU3MTY5LTExNzMzNGNlLWI2OTMtNDc1Yy1iODQyLTkwNWRiZDZhMzZhYS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQxMTIwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MTEyMFQwNjE0MTJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT02MTk3ZTI4YzI1MjViNzQyZGQ4ZGMyMTlhMmE4YmYwYTQyYTA5NDhmMWFkODQ1OWZiMGRjZTVhMjJhNjFmOGQwJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.OwvkmplOTc5U4QAsH-Ci1YhgkycwBu6FfwVGvxr1kk0" />
 <br />
 
 3️⃣ 고민 과정에서 아쉬웠던 점
 
-- 서버에서 ETag를 통해서 서버 자원과 캐싱하는 자원의 동일성을 검증하는 경우가 있다고 함 > Etag가 동일한 경우만 불러오는 로직으로 처리해볼 수 있음
-  - 서버에서 이미지가 업데이트 될 떄마다 새롭게 생성된 static url을 제공해주고 있었음 
+HTTP 응답 헤더의 ETag 속성을 이용해 서버 자원과 캐싱하는 자원의 동일성을 검증하는 방식을 알고 있습니다. 이번 프로젝트에서 활용한 서버는 ETag 방식을 지원하지 않고, 이미지가 업데이트 될 때마다 변경된 정적 Image Path를 제공해주었습니다. ETag 자체를 캐시 키로 활용하여 동일한 값이 없는 경우만 네트워킹을 하는 방식으로도 캐싱을 구현해볼 수 있을 것 같습니다.
 
 <br />
 
