@@ -5,10 +5,10 @@
 <br />
 
 **목차** <br />
-> - [프로젝트 소개](#-프로젝트-소개)
-> - [프로젝트 아키텍처 및 스팩](#-프로젝트-아키텍처-및-스팩)
-> - [프로젝트에서 고민한 것들](#-프로젝트에서-고민한-것들)
-> - [프로젝트 구현 화면 및 기능](#프로젝트-구현-화면-및-기능)
+- [프로젝트 소개](#프로젝트-소개)
+- [프로젝트 아키텍처 및 스팩](#프로젝트-아키텍처-및-스팩)
+- [프로젝트에서 고민한 것들](#프로젝트에서-고민한-것들)
+- [프로젝트 구현 화면 및 기능](#프로젝트-구현-화면-및-기능)
 
 <br />
 
@@ -85,18 +85,16 @@
 
 ### 1. Tuist를 이용한 ImageKit, NetworkKit, DatabaseKit 역할 분리
 
-> 1️⃣ 고민한 부분
+> **1️⃣ 고민한 부분**
 
 해당 프로젝트에서는,
 - View를 그리고 View를 업데이트하는 상태를 관리하는 역할을 하는 App과
 - 데이터를 서버에서 불러오고 데이터베이스 저장하는 등의 역할을 하는 Service 객체 구현을 분리시키고 싶었습니다.
-<br />
-
 - App 모듈에서는 서비스 구현체를 불러와 내부 구현 방식을 신경쓰지 않고 명세된 기능만 활용하여 앱을 동작시키는 로직을 처리하길 원했습니다.
 - 구분된 서비스 모듈에서는 App 모듈이 어떻게 구현될지에 상관하지 않고, 각자의 역할을 수행할 수 있는 기능 구현만 신경쓰도록 구분짓고 싶었습니다.
 <br />
 
-> 2️⃣ 고민을 풀어간 방식 1 - 모듈 구분
+> **2️⃣ 고민을 풀어간 방식 1 - 모듈 구분**
 
 - **역할별 모듈을 구분하고 모듈간 의존성, 필요한 외부 모듈 주입을 위해 Tuist를 이용**했습니다. Tuist CLI로 프로젝트 설정 파일을 구성하고, 각 모듈의 Project 파일에서 Swift 객체로 모듈별 설정을 편하게 조정할 수 있었습니다.
 - 역할에 따라 크게 **View와 View에 필요한 상태를 관리하는 ViewModel의 로직을 담고 있는 App Target**과 **데이터를 불러오고 저장하고 필요한 형태로 가공하는 Framework Target**으로 구분지었습니다.
@@ -109,7 +107,7 @@
 
 <br />
 
-> 2️⃣ 고민을 풀어간 방식 2 - Framework 구현과 모듈 의존성 설정
+> **2️⃣ 고민을 풀어간 방식 2 - Framework 구현과 모듈 의존성 설정**
 
 Network Framework는 HTTP/Socket 기반 네트워크 통신을 위해 아래 기능을 구현했습니다.
 - 서버 엔드포인트별로 각각의 URLRequest를 맵핑해주는 [EndpointProtocol](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/Protocols/EndpointProtocol.swift)
@@ -134,7 +132,7 @@ App 모듈이 세 개의 Framework 모듈에 의존성을 가지게 설정했습
 - 역할별로 모듈을 분리하고, 필요한 곳에서 모듈의 구현 방식은 신경쓰지 않고, 모듈이 제공하는 기능을 이용해 App 모듈만의 로직을 구현할 수 있었습니다.
 <br />
 
-> 3️⃣ 고민 과정에서 아쉬웠던 점
+> **3️⃣ 고민 과정에서 아쉬웠던 점**
 
 App 모듈이 세 개의 Framework에 의존성을 가지고 있기 때문에, Framework 구현 범위를 넘어선 로직 설계가 필요할 수 있다는 생각이 들었습니다.
 역으로 App 모듈에 필요한 기능을 반영하기 위해 Framework 모듈에 추가 작업이 필요하고, 유지 보수 측면에서 의도하지 않은 번거로움이 생길 수 있을 것 같았습니다. <br />
@@ -297,7 +295,7 @@ Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였�
 - 이미지 랜더링이 필요할 때마다 네트워크 요청으로 데이터를 가져오면 불필요한 자원 소모가 발생했습니다.
 - 특히, 채팅 View에서 스크롤에 따라 ChatView를 재사용 하는 경우 별다른 제약이 없다면 계속 네트워크 요청이 들어가 메모리 사용이 급격하게 증가하는 것을 경험했습니다. (스크롤을 할 때마다 메모리 사용량이 우상향)
 
-<img width="450" src="https://private-user-images.githubusercontent.com/121326152/385157148-7618a923-4a45-4b1d-89ac-14c18657ec28.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MzIwNzk2MjksIm5iZiI6MTczMjA3OTMyOSwicGF0aCI6Ii8xMjEzMjYxNTIvMzg1MTU3MTQ4LTc2MThhOTIzLTRhNDUtNGIxZC04OWFjLTE0YzE4NjU3ZWMyOC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQxMTIwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MTEyMFQwNTA4NDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xNDZjYjM1Zjk1NmE1MWE1ZmNlMTA4Y2Y5YWY3NjQxNWE3MmYwNDAxNzhjOWNhMDhkZDAxMDJlY2I5NzlmZTg0JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.XMt3KOMDdpajVUi1llWwPXJwrog1YB6Yx7Cw-_iybCM" /> 
+<img width="450" alt="385157148-7618a923-4a45-4b1d-89ac-14c18657ec28" src="https://github.com/user-attachments/assets/d71fdf47-34e6-45f2-882d-3f8213a5b6a7">
 <br />
 
 > **2️⃣ 고민을 풀어간 방식**
@@ -362,7 +360,7 @@ NSCache 인스턴스를 기반으로 ImageObject를 관리하는 [MemoryCachePro
 
 이미지 캐시 구현으로 스크롤과 같은 View 이벤트에 따라 메모리 사용이 급격하게 늘어나는 문제를 크게 해소할 수 있었습니다.
 - 위와 같은 채팅방에서 동일한 스크롤 이벤트를 했을 때, 최소 8배 적게 메모리 사용을 줄일 수 있었습니다.
-<img width="450" src="https://private-user-images.githubusercontent.com/121326152/385157169-117334ce-b693-475c-b842-905dbd6a36aa.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MzIwODM1NTIsIm5iZiI6MTczMjA4MzI1MiwicGF0aCI6Ii8xMjEzMjYxNTIvMzg1MTU3MTY5LTExNzMzNGNlLWI2OTMtNDc1Yy1iODQyLTkwNWRiZDZhMzZhYS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQxMTIwJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MTEyMFQwNjE0MTJaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT02MTk3ZTI4YzI1MjViNzQyZGQ4ZGMyMTlhMmE4YmYwYTQyYTA5NDhmMWFkODQ1OWZiMGRjZTVhMjJhNjFmOGQwJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.OwvkmplOTc5U4QAsH-Ci1YhgkycwBu6FfwVGvxr1kk0" />
+<img width="450" alt="385157169-117334ce-b693-475c-b842-905dbd6a36aa" src="https://github.com/user-attachments/assets/ef18e46e-bfa4-466e-8911-3834cb44daa2">
 <br />
 
 3️⃣ 고민 과정에서 아쉬웠던 점
