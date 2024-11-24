@@ -31,7 +31,7 @@
 | **MVVM** | 앱 구조 설계 |
 | **Tuist** | 프로젝트 설정 및 모듈 분리 |
 | **SwiftUI, Combine** | 컴포넌트 및 레이아웃 구현, 앱 상태 업데이트를 위한 데이터 흐름 관리|
-| **URLSession, SocketIO** | HTTP, Socket 네트워크 비동기 통신 |
+| **URLSession, 소켓IO** | HTTP, 소켓 네트워크 비동기 통신 |
 | **Swift Concurrency** | 비동기 태스크 동시성 관리 및 토큰/이미지 캐시 등의 공유 자원 스레드 접근 관리 |
 | **SwiftData** | 채팅 데이터 관리 |
 | **FileManager, NSCache** | 앱 전체 이미지 캐싱 관리 |
@@ -57,17 +57,17 @@
 **SwiftUI, Combine**
 > SwiftUI로 반복 활용되는 재사용 컴포넌트를 만들고, 채팅 뷰에 필요한 레이아웃을 구현했습니다.
 > - 채팅 UI와 채팅 중 공유된 이미지 파일을 모아보는 이미지 뷰어를 구현했습니다.
-> - ScenePhase 환경 변수와 View 생명주기 메서드로 채팅 뷰가 화면에 사라지는 시점을 고려해 Socket 연결을 제어했습니다.
+> - ScenePhase 환경 변수와 View 생명주기 메서드로 채팅 뷰가 화면에 사라지는 시점을 고려해 소켓 연결을 제어했습니다.
 > 
 > UseCase별 서비스 로직 처리 결과(성공, 에러 케이스)를 Combine Future Publisher로 핸들링 했습니다.
 <br />
 
-**URLSession, SocketIO, Swift Concurrency**
+**URLSession, 소켓IO, Swift Concurrency**
 > Network 모듈에 URLSession Async DataTask를 활용하는 HTTP 통신 서비스 객체를 구현했습니다.
 > - EndpointProtocol을 구현하여 엔드포인트마다 서로다른 URLRequest가 반환되도록 설정했습니다.
-> - 동일 모듈에 Socket 연결, 해제, 데이터 통신 기능을 반영한 SocketService 객체를 구현했습니다.
->   - SocketIO의 on 메서드로 Socket 채널을 활성화하고, 상대방이 보낸 채팅을 실시간으로 받아오는 이벤트를 처리했습니다. SocketService도 EndpointProtocol 기반에서 채널/DM 채팅을 구분시켰습니다.
-> - Async-Await, Task 블록으로 모든 비동기 태스크의 동시성을 관리하고, AccessToken/ImageChache/SocketClient와 같이 여러 스레드에서 동시 접근이 가능한 공유 자원을 스레드 세이프하게 활용하기 위해 Actor를 활용했습니다.
+> - 동일 모듈에 소켓 연결, 해제, 데이터 통신 기능을 반영한 소켓Service 객체를 구현했습니다.
+>   - 소켓IO의 on 메서드로 소켓 채널을 활성화하고, 상대방이 보낸 채팅을 실시간으로 받아오는 이벤트를 처리했습니다. 소켓Service도 EndpointProtocol 기반에서 채널/DM 채팅을 구분시켰습니다.
+> - Async-Await, Task 블록으로 모든 비동기 태스크의 동시성을 관리하고, AccessToken/ImageChache/소켓Client와 같이 여러 스레드에서 동시 접근이 가능한 공유 자원을 스레드 세이프하게 활용하기 위해 Actor를 활용했습니다.
 <br />
 
 **SwiftData**
@@ -99,7 +99,7 @@
 - **역할별 모듈을 구분하고 모듈간 의존성, 필요한 외부 모듈 주입을 위해 Tuist를 이용**했습니다. Tuist CLI로 프로젝트 설정 파일을 구성하고, 각 모듈의 Project 파일에서 Swift 객체로 모듈별 설정을 편하게 조정할 수 있었습니다.
 - 역할에 따라 크게 **View와 View에 필요한 상태를 관리하는 ViewModel의 로직을 담고 있는 App Target**과 **데이터를 불러오고 저장하고 필요한 형태로 가공하는 Framework Target**으로 구분지었습니다.
 - Framework Target은 다시 역할별로 아래와 같이 모듈을 나누었습니다.
-  - HTTP/Socket 네트워크 통신을 담당하는 NetworkService Framework
+  - HTTP/소켓 네트워크 통신을 담당하는 NetworkService Framework
   - 채팅 내역을 모델링하고 채팅 데이터를 저장/조회/필터링하는 Database Framework
   - 서버에서 받아온 이미지를 메모리/디스크 캐시로 관리하는 ImageCache Framework
   <br />
@@ -109,11 +109,11 @@
 
 > **2️⃣ 고민을 풀어간 방식 2 - Framework 구현과 모듈 의존성 설정**
 
-Network Framework는 HTTP/Socket 기반 네트워크 통신을 위해 아래 기능을 구현했습니다.
+Network Framework는 HTTP/소켓 기반 네트워크 통신을 위해 아래 기능을 구현했습니다.
 - 서버 엔드포인트별로 각각의 URLRequest를 맵핑해주는 [EndpointProtocol](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/Protocols/EndpointProtocol.swift)
 - Endpoint 객체를 이용해 서버와 HTTP 통신을 하고 응답을 반환하는 [async request 함수](https://github.com/hankyeol-dev/freeworkers/blob/1262bc0a75832af7ab02b0f9f9ddb1a344534608/Freeworkers/Network/Sources/NetworkService.swift#L8)
 - 에러 응답을 특정 코드로 반환해주는 Error 객체
-- Socket 통신을 위한 EndpointProtocol을 구분짓고, SocketIO API를 활용해 [Socket 연결/종료/수신 이벤트를 처리하는 객체](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/SocketService.swift)를 구현했습니다.
+- 소켓 통신을 위한 EndpointProtocol을 구분짓고, 소켓IO API를 활용해 [소켓 연결/종료/수신 이벤트를 처리하는 객체](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/소켓Service.swift)를 구현했습니다.
 <br />
 
 Database Framework는 SwiftData 프레임워크를 기반으로
@@ -143,32 +143,32 @@ App 모듈이 세 개의 Framework에 의존성을 가지고 있기 때문에, F
 
 <br />
 
-### 2. Socket, 로컬 데이터베이스를 이용한 실시간 채팅 구현
+### 2. 소켓, 로컬 데이터베이스를 이용한 실시간 채팅 구현
 
 > **1️⃣ 고민한 부분**
 
-프로젝트의 핵심 서비스는 채널/유저간 실시간 채팅입니다. 실시간 채팅을 위해 서버에 Socket 통신이 준비되어 있었고, 앱 단에서 Socket을 통한 연결/차단/송·수신 이벤트를 핸들링해야 했습니다.
+프로젝트의 핵심 서비스는 채널/유저간 실시간 채팅입니다. 실시간 채팅을 위해 서버에 소켓 통신이 준비되어 있었고, 앱 단에서 소켓을 통한 연결/차단/송·수신 이벤트를 핸들링해야 했습니다.
 
-- 어떤 시점에 Socket을 연결하고 끊어야 하는지부터 채팅 데이터를 전송하고 다른 유저가 보낸 내역을 수신하는 체계를 고민했습니다.
+- 어떤 시점에 소켓을 연결하고 끊어야 하는지부터 채팅 데이터를 전송하고 다른 유저가 보낸 내역을 수신하는 체계를 고민했습니다.
 - 이전 채팅 내역은 어떤 방식으로 관리할 것인지도 함께 고민했습니다.
 - 채팅 뷰에서는 텍스트/이미지 채팅 데이터를 어떤 레이아웃으로 보여줄 것인지를 고려했습니다.
 <br />
 
-> **2️⃣ 고민을 풀어간 방식 1 - SocketService와 연결 시점 관리**
+> **2️⃣ 고민을 풀어간 방식 1 - 소켓Service와 연결 시점 관리**
 
-Socket 통신을 담당하는 [SocketService 객체](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/SocketService.swift)를 Network Framework 모듈에 구현했습니다. 
-- SocketIO의 `SocketIOClient` 인스턴스로 통신 연결/차단을 제어하고,
+소켓 통신을 담당하는 [SocketService 객체](https://github.com/hankyeol-dev/freeworkers/blob/main/Freeworkers/Network/Sources/소켓Service.swift)를 Network Framework 모듈에 구현했습니다. 
+- 소켓IO의 `SocketIOClient` 인스턴스로 통신 연결/차단을 제어하고,
 - `.on` 메서드로 특정 채팅 방의 채팅 데이터 수신 이벤트를 연결하는 기능을 구현했습니다.
-- NetworkService와 마찬가지로, Socket 통신을 위한 EndpointProtocol을 만들어 App에서 구조화된 요청 객체를 전달하게 만들었습니다.
+- NetworkService와 마찬가지로, 소켓 통신을 위한 EndpointProtocol을 만들어 App에서 구조화된 요청 객체를 전달하게 만들었습니다.
 <br />
 
-App에서는 유저가 **채팅 방(채널, DM)에 입장하는 시점에 이전 채팅 내역 존재 여부를 파악한 다음 Socket을 연결**하였습니다.
-- 입장한 방에 이전 채팅 내역이 있거나, 서버에서 추가로 받아와야 하는 읽지 않은 채팅 내역이 있을 경우 **Socket 연결 전에 채팅 데이터 싱크를 먼저 맞추었습니다.** 조회한 데이터를 로컬 데이터베이스에 순서대로 **저장한 다음 `.connect` 함수를 호출해 Socket을 연결**했습니다.
-- 이전 채팅 내역이 없는 새롭게 생성된 채널, DM인 경우에는 **유저가 최초 채팅 데이터를 전송하는 시점에 Socket을 연결**했습니다.
+App에서는 유저가 **채팅 방(채널, DM)에 입장하는 시점에 이전 채팅 내역 존재 여부를 파악한 다음 소켓을 연결**하였습니다.
+- 입장한 방에 이전 채팅 내역이 있거나, 서버에서 추가로 받아와야 하는 읽지 않은 채팅 내역이 있을 경우 **소켓 연결 전에 채팅 데이터 싱크를 먼저 맞추었습니다.** 조회한 데이터를 로컬 데이터베이스에 순서대로 **저장한 다음 `.connect` 함수를 호출해 소켓을 연결**했습니다.
+- 이전 채팅 내역이 없는 새롭게 생성된 채널, DM인 경우에는 **유저가 최초 채팅 데이터를 전송하는 시점에 소켓을 연결**했습니다.
 <br />
 
-Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였는지에 따라 구분**하였습니다.
-- 기본적으로, pop 이벤트가 반영된 뒤로가기 버튼을 터치하여 **채팅 View가 사라지는 시점에 연결을 해제**했습니다. 또한 ScenePhase 환경 변수로 앱이 **background inActive 상태가 된 경우를 감지해 Socket 연결을 해제**했습니다.
+소켓 **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였는지에 따라 구분**하였습니다.
+- 기본적으로, pop 이벤트가 반영된 뒤로가기 버튼을 터치하여 **채팅 View가 사라지는 시점에 연결을 해제**했습니다. 또한 ScenePhase 환경 변수로 앱이 **background inActive 상태가 된 경우를 감지해 소켓 연결을 해제**했습니다.
 - 채팅 중, 이미지 파일 첨부를 위해 화면이 fullCover 되거나, 이미지 뷰어가 overlap 되는 경우는 **채팅 View가 가리더라도 채팅 방을 이탈한 경우가 아니기 때문에 연결을 해제하지 않았습니다.**
 <br />
 
@@ -180,7 +180,7 @@ Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였�
 <br />
 
 유저의 채팅 전송은 HTTP 요청으로 처리하였습니다.
-- 채팅 데이터(body)가 정상적인 요청 객체로 들어왔는지, 서버에 정상적으로 저장되었는지 등을 고려하여 성공 응답을 받았을 경우에만 Socket 채널을 통해 채팅 데이터가 전달되었습니다. 
+- 채팅 데이터(body)가 정상적인 요청 객체로 들어왔는지, 서버에 정상적으로 저장되었는지 등을 고려하여 성공 응답을 받았을 경우에만 소켓 채널을 통해 채팅 데이터가 전달되었습니다. 
 - 서버 성공 응답을 받은 경우에만 로컬 데이터베이스에 전송 데이터를 저장하였습니다. 실패 응답을 받았을 때는 Error Toast를 띄우고 TextView, ImageSelector의 상태를 따로 변경하지 않았습니다.
 <details>
   <summary>채팅 전송 코드</summary>
@@ -216,8 +216,8 @@ Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였�
 </details>
 <br />
 
-`.receive` 메서드로 Socket을 통해 채팅 데이터를 수신하였습니다.
-- 유저 자신이 전송한 채팅 데이터도 Socket을 통해 전달받기 때문에, 전송 요청이 성공한 시점에 데이터베이스에 채팅 레코드가 쌓였다면 Socket을 통해 전달받는 동일 데이터는 저장하지 않도록 처리했습니다.
+`.receive` 메서드로 소켓을 통해 채팅 데이터를 수신하였습니다.
+- 유저 자신이 전송한 채팅 데이터도 소켓을 통해 전달받기 때문에, 전송 요청이 성공한 시점에 데이터베이스에 채팅 레코드가 쌓였다면 소켓을 통해 전달받는 동일 데이터는 저장하지 않도록 처리했습니다.
 - 다른 유저가 전송한 채팅은 바로 데이터베이스에 저장하고 View가 업데이트 될 수 있도록 처리했습니다.
 
 <details>
@@ -235,7 +235,7 @@ Socket **연결 해제는 유저가 채팅 방을 어떤 형태로 이탈하였�
     }
  }
        
- // Socket으로 수신한 채팅 내역이 로컬 데이터베이스 잘 저장되었다면 View 업데이트
+ // 소켓으로 수신한 채팅 내역이 로컬 데이터베이스 잘 저장되었다면 View 업데이트
  private func saveReceivedChat(_ chat : ChatSaveRequestType) async {
     if let saved = await diContainer.services.dmService.saveReceivedDM(loungeId: loungeId, chatRequest: chat) {
         chats.append(saved)
