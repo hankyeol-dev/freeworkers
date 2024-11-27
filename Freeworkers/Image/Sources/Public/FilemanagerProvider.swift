@@ -10,18 +10,15 @@ public protocol FilemangerProviderType {
 }
 
 public final actor FilemanagerProvider : FilemangerProviderType {
-   private let fileManager : FileManager
    private let directoryURL : URL
    
-   public init(fileManager : FileManager = .default) {
-      self.fileManager = fileManager
-      self.directoryURL = fileManager.urls(
+   public init() {
+      self.directoryURL = FileManager.default.urls(
          for: .cachesDirectory,
          in: .userDomainMask
       )[0].appending(path: FrameworkEnvironment.filemanagerPathKey)
       
-      Task { [weak self] in
-         guard let self else { return }
+      Task {
          await createFileDirectory()
          await removeAllExpired()
       }
@@ -29,7 +26,7 @@ public final actor FilemanagerProvider : FilemangerProviderType {
    
    public func getImage(_ path: String) async throws -> UIImage? {
       let fileURL = cacheFileURL(path)
-      guard fileManager.fileExists(atPath: fileURL.path()) else { return nil }
+      guard FileManager.default.fileExists(atPath: fileURL.path()) else { return nil }
       
       return UIImage(data: try Data(contentsOf: fileURL))
    }
@@ -43,7 +40,7 @@ public final actor FilemanagerProvider : FilemangerProviderType {
          .modificationDate : imageObject.getEstimateExpire()
       ]
       let fileURL = cacheFileURL(path)
-      try fileManager.setAttributes(fileAttribute, ofItemAtPath: fileURL.path())
+      try FileManager.default.setAttributes(fileAttribute, ofItemAtPath: fileURL.path())
    }
    
    public func removeAllExpired() {
@@ -51,7 +48,7 @@ public final actor FilemanagerProvider : FilemangerProviderType {
       if !urls.isEmpty {
          let expiredList = urls.filter { url in
             do {
-               let attribute = try fileManager.attributesOfItem(atPath: url.path())
+               let attribute = try FileManager.default.attributesOfItem(atPath: url.path())
                if let expired = attribute[.modificationDate] as? Date {
                   return expired.timeIntervalSince(Date()) <= 0
                }
@@ -62,7 +59,7 @@ public final actor FilemanagerProvider : FilemangerProviderType {
          }
          
          for expiredURL in expiredList {
-            try? fileManager.removeItem(at: expiredURL)
+            try? FileManager.default.removeItem(at: expiredURL)
          }
       }
    }
@@ -70,8 +67,8 @@ public final actor FilemanagerProvider : FilemangerProviderType {
 
 extension FilemanagerProvider {
    private func createFileDirectory() {
-      guard !fileManager.fileExists(atPath: directoryURL.path()) else { return }
-      try? fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+      guard !FileManager.default.fileExists(atPath: directoryURL.path()) else { return }
+      try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
    }
    
    private func cacheFileURL(_ path: String) -> URL {
@@ -79,7 +76,7 @@ extension FilemanagerProvider {
    }
    
    private func cacheAllFileURLs() -> [URL] {
-      guard let enumrator = fileManager.enumerator(
+      guard let enumrator = FileManager.default.enumerator(
          at: directoryURL,
          includingPropertiesForKeys: [.contentModificationDateKey],
          options: [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
@@ -90,6 +87,6 @@ extension FilemanagerProvider {
    }
    
    private func removeAllImageObject() {
-      try? fileManager.removeItem(at: directoryURL)
+      try? FileManager.default.removeItem(at: directoryURL)
    }
 }

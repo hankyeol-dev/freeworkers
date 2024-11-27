@@ -85,7 +85,7 @@ struct WorkspaceRepository : WorkspaceRepositoryType {
       let result = await request(router: WorkspaceRouter.exitLounge(loungeId: loungeId),
                                  of: [LoungeCommonOutputType].self)
       switch result {
-      case let .success(output):
+      case .success:
          await UserDefaultsRepository.shared.setValue(.latestEnteredChannelId, value: "")
          return .success(true)
       case let .failure(errors):

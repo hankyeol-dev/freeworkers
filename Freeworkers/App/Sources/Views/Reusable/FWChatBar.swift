@@ -77,7 +77,6 @@ struct FWChatBar : View {
       .frame(minHeight: textViewHeight + 20.0)
    }
    
-   @MainActor
    private func setImage(_ photos : [PhotosPickerItem]) {
       photoDatas = []
       for photo in photos {
