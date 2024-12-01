@@ -59,8 +59,3 @@ extension CoreRepositoryType {
       }
    }
 }
-
-/**
- await dummyLogin()
- return await request(router: router, of: of)
- */
